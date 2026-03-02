@@ -1,0 +1,116 @@
+{
+    "actions": [],
+    "creation": "2026-03-02 10:00:00.000000",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "restaurant_name",
+        "address",
+        "column_break_1",
+        "default_currency_symbol",
+        "section_break_features",
+        "enable_kot_printing",
+        "auto_create_sales_invoice",
+        "column_break_2",
+        "whatsapp_number",
+        "section_break_receipt",
+        "receipt_header",
+        "receipt_footer"
+    ],
+    "fields": [
+        {
+            "fieldname": "restaurant_name",
+            "fieldtype": "Data",
+            "label": "Restaurant Name",
+            "reqd": 1,
+            "default": "My Restaurant"
+        },
+        {
+            "fieldname": "address",
+            "fieldtype": "Small Text",
+            "label": "Address"
+        },
+        {
+            "fieldname": "column_break_1",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "default_currency_symbol",
+            "fieldtype": "Data",
+            "label": "Currency Symbol",
+            "default": "₹"
+        },
+        {
+            "fieldname": "section_break_features",
+            "fieldtype": "Section Break",
+            "label": "Features"
+        },
+        {
+            "fieldname": "enable_kot_printing",
+            "fieldtype": "Check",
+            "label": "Enable KOT Printing",
+            "default": "1"
+        },
+        {
+            "fieldname": "auto_create_sales_invoice",
+            "fieldtype": "Check",
+            "label": "Auto Create Sales Invoice",
+            "default": "1",
+            "description": "Automatically create a Sales Invoice in ERPNext when an order is completed"
+        },
+        {
+            "fieldname": "column_break_2",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "whatsapp_number",
+            "fieldtype": "Data",
+            "label": "WhatsApp Number",
+            "description": "Phone number for sending revenue reports via WhatsApp"
+        },
+        {
+            "fieldname": "section_break_receipt",
+            "fieldtype": "Section Break",
+            "label": "Receipt Customization"
+        },
+        {
+            "fieldname": "receipt_header",
+            "fieldtype": "Small Text",
+            "label": "Receipt Header Text"
+        },
+        {
+            "fieldname": "receipt_footer",
+            "fieldtype": "Small Text",
+            "label": "Receipt Footer Text",
+            "default": "Thank you for dining with us!"
+        }
+    ],
+    "index_web_pages_for_search": 0,
+    "issingle": 1,
+    "links": [],
+    "modified": "2026-03-02 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Restaurant Management",
+    "name": "Restaurant Settings",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "print": 1,
+            "read": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        },
+        {
+            "read": 1,
+            "role": "All"
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": [],
+    "track_changes": 1
+}

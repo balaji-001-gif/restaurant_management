@@ -1,0 +1,128 @@
+{
+    "charts": [],
+    "content": "[{\"id\":\"gkh3xq\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Restaurant Management</b></span>\",\"col\":12}},{\"id\":\"k94nfd\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Restaurant POS\",\"col\":4}},{\"id\":\"p83mxd\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Restaurant Order\",\"col\":4}},{\"id\":\"r72bvt\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Restaurant Table\",\"col\":4}},{\"id\":\"s51czw\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Restaurant Menu Item\",\"col\":4}},{\"id\":\"t40ayp\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Restaurant Revenue\",\"col\":4}},{\"id\":\"u39bxn\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Restaurant Settings\",\"col\":4}}]",
+    "creation": "2026-03-02 10:00:00.000000",
+    "custom_blocks": [],
+    "doctype": "Workspace",
+    "for_user": "",
+    "hide_custom": 0,
+    "icon": "restaurant",
+    "idx": 0,
+    "is_hidden": 0,
+    "label": "Restaurant Management",
+    "links": [
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Restaurant POS",
+            "link_count": 0,
+            "link_to": "restaurant-pos",
+            "link_type": "Page",
+            "onboard": 1,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Restaurant Order",
+            "link_count": 0,
+            "link_to": "Restaurant Order",
+            "link_type": "DocType",
+            "onboard": 1,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Restaurant Table",
+            "link_count": 0,
+            "link_to": "Restaurant Table",
+            "link_type": "DocType",
+            "onboard": 1,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Restaurant Menu Item",
+            "link_count": 0,
+            "link_to": "Restaurant Menu Item",
+            "link_type": "DocType",
+            "onboard": 1,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 1,
+            "label": "Restaurant Revenue",
+            "link_count": 0,
+            "link_to": "Restaurant Revenue",
+            "link_type": "Report",
+            "onboard": 1,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Restaurant Settings",
+            "link_count": 0,
+            "link_to": "Restaurant Settings",
+            "link_type": "DocType",
+            "onboard": 0,
+            "type": "Link"
+        }
+    ],
+    "modified": "2026-03-02 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Restaurant Management",
+    "name": "Restaurant Management",
+    "number_cards": [],
+    "owner": "Administrator",
+    "parent_page": "",
+    "public": 1,
+    "restrict_to_domain": "",
+    "roles": [],
+    "sequence_id": 25,
+    "shortcuts": [
+        {
+            "color": "Orange",
+            "label": "Restaurant POS",
+            "link_to": "restaurant-pos",
+            "type": "Page"
+        },
+        {
+            "color": "Blue",
+            "doc_view": "List",
+            "label": "Restaurant Order",
+            "link_to": "Restaurant Order",
+            "type": "DocType"
+        },
+        {
+            "color": "Green",
+            "doc_view": "List",
+            "label": "Restaurant Table",
+            "link_to": "Restaurant Table",
+            "type": "DocType"
+        },
+        {
+            "color": "Yellow",
+            "doc_view": "List",
+            "label": "Restaurant Menu Item",
+            "link_to": "Restaurant Menu Item",
+            "type": "DocType"
+        },
+        {
+            "color": "Grey",
+            "label": "Restaurant Revenue",
+            "link_to": "Restaurant Revenue",
+            "type": "Report"
+        },
+        {
+            "color": "Grey",
+            "label": "Restaurant Settings",
+            "link_to": "Restaurant Settings",
+            "type": "DocType"
+        }
+    ],
+    "title": "Restaurant Management"
+}

@@ -1,0 +1,452 @@
+# Copyright (c) 2026, Restaurant Management and contributors
+# For license information, please see license.txt
+
+import frappe
+from frappe import _
+from frappe.utils import now_datetime, flt, cint, today, getdate, add_days
+from datetime import datetime, timedelta
+import json
+
+
+@frappe.whitelist()
+def get_menu_items():
+	"""Get all available menu items grouped by category."""
+	items = frappe.get_all(
+		"Restaurant Menu Item",
+		filters={"is_available": 1},
+		fields=["name", "item_name", "item_group", "price", "description", "image"],
+		order_by="item_group asc, item_name asc",
+	)
+
+	grouped = {}
+	for item in items:
+		group = item.get("item_group", "Uncategorized")
+		if group not in grouped:
+			grouped[group] = []
+		grouped[group].append(item)
+
+	return grouped
+
+
+@frappe.whitelist()
+def get_tables():
+	"""Get all tables with their current status."""
+	tables = frappe.get_all(
+		"Restaurant Table",
+		fields=["name", "table_number", "status", "seating_capacity", "current_order"],
+		order_by="table_number asc",
+	)
+
+	for table in tables:
+		if table.current_order:
+			order = frappe.get_doc("Restaurant Order", table.current_order)
+			table["order_total"] = order.total_amount
+			table["order_items"] = [
+				{"item_name": item.item_name, "quantity": item.quantity, "amount": item.amount}
+				for item in order.items
+			]
+		else:
+			table["order_total"] = 0
+			table["order_items"] = []
+
+	return tables
+
+
+@frappe.whitelist()
+def create_order(items, order_type, table=None, customer_name=None, notes=None):
+	"""Create a new restaurant order quickly from the POS page.
+
+	Args:
+		items: JSON string — list of {menu_item, quantity}
+		order_type: "Dine In" or "Parcel"
+		table: Restaurant Table name (for Dine In)
+		customer_name: Optional customer name
+		notes: Optional special instructions
+	"""
+	if isinstance(items, str):
+		items = json.loads(items)
+
+	if not items:
+		frappe.throw(_("Please add at least one item to the order"))
+
+	order = frappe.get_doc({
+		"doctype": "Restaurant Order",
+		"order_type": order_type,
+		"table": table if order_type == "Dine In" else None,
+		"customer_name": customer_name,
+		"notes": notes,
+		"order_date": now_datetime(),
+	})
+
+	for item in items:
+		menu_item = frappe.get_doc("Restaurant Menu Item", item.get("menu_item"))
+		order.append("items", {
+			"menu_item": menu_item.name,
+			"item_name": menu_item.item_name,
+			"quantity": cint(item.get("quantity", 1)),
+			"rate": menu_item.price,
+		})
+
+	order.insert(ignore_permissions=True)
+	return order.name
+
+
+@frappe.whitelist()
+def complete_order(order_name):
+	"""Mark an order as completed."""
+	order = frappe.get_doc("Restaurant Order", order_name)
+	order.status = "Completed"
+	order.save(ignore_permissions=True)
+	return {"status": "success", "message": _("Order {0} completed").format(order_name)}
+
+
+@frappe.whitelist()
+def cancel_order(order_name):
+	"""Cancel an order."""
+	order = frappe.get_doc("Restaurant Order", order_name)
+	order.status = "Cancelled"
+	order.save(ignore_permissions=True)
+	return {"status": "success", "message": _("Order {0} cancelled").format(order_name)}
+
+
+@frappe.whitelist()
+def clear_table(table_name):
+	"""Clear a table — complete its current order and free it."""
+	table = frappe.get_doc("Restaurant Table", table_name)
+	if table.current_order:
+		order = frappe.get_doc("Restaurant Order", table.current_order)
+		if order.status == "In Progress":
+			order.status = "Completed"
+			order.save(ignore_permissions=True)
+
+	table.status = "Available"
+	table.current_order = None
+	table.save(ignore_permissions=True)
+
+	return {"status": "success", "message": _("Table {0} cleared").format(table.table_number)}
+
+
+@frappe.whitelist()
+def get_revenue_data(range_type="daily", start_date=None, end_date=None):
+	"""Get revenue analytics data.
+
+	Args:
+		range_type: "daily", "monthly", "overall", or "custom"
+		start_date: Start date for custom range (YYYY-MM-DD)
+		end_date: End date for custom range (YYYY-MM-DD)
+	"""
+	now = now_datetime()
+
+	if range_type == "daily":
+		start = getdate(today())
+		end = getdate(today())
+	elif range_type == "monthly":
+		start = getdate(add_days(today(), -30))
+		end = getdate(today())
+	elif range_type == "overall":
+		first_order = frappe.db.get_value(
+			"Restaurant Order",
+			filters={"status": ["in", ["In Progress", "Completed"]]},
+			fieldname="order_date",
+			order_by="order_date asc",
+		)
+		start = getdate(first_order) if first_order else getdate(add_days(today(), -30))
+		end = getdate(today())
+	elif range_type == "custom" and start_date and end_date:
+		start = getdate(start_date)
+		end = getdate(end_date)
+	else:
+		frappe.throw(_("Invalid range type"))
+
+	# Get orders in range
+	orders = frappe.get_all(
+		"Restaurant Order",
+		filters={
+			"status": ["in", ["In Progress", "Completed"]],
+			"order_date": ["between", [start, add_days(end, 1)]],
+		},
+		fields=[
+			"name", "order_type", "total_amount", "order_date",
+			"status", "total_qty"
+		],
+		order_by="order_date asc",
+	)
+
+	total_revenue = sum(flt(o.total_amount) for o in orders)
+	total_orders = len(orders)
+	avg_order_value = total_revenue / total_orders if total_orders else 0
+	dine_in_count = sum(1 for o in orders if o.order_type == "Dine In")
+	parcel_count = sum(1 for o in orders if o.order_type == "Parcel")
+
+	# Group revenue by date
+	daily_data = {}
+	for order in orders:
+		date_key = getdate(order.order_date).strftime("%Y-%m-%d")
+		if date_key not in daily_data:
+			daily_data[date_key] = {"revenue": 0, "orders": 0}
+		daily_data[date_key]["revenue"] += flt(order.total_amount)
+		daily_data[date_key]["orders"] += 1
+
+	chart_labels = sorted(daily_data.keys())
+	chart_data = [daily_data[d]["revenue"] for d in chart_labels]
+	peak_revenue = max(chart_data) if chart_data else 0
+
+	revenue_data = []
+	for date_key in chart_labels:
+		data = daily_data[date_key]
+		revenue_data.append({
+			"date": date_key,
+			"orders": data["orders"],
+			"revenue": data["revenue"],
+			"avg_value": data["revenue"] / data["orders"] if data["orders"] else 0,
+		})
+
+	return {
+		"total_revenue": total_revenue,
+		"avg_order_value": avg_order_value,
+		"total_orders": total_orders,
+		"dine_in_count": dine_in_count,
+		"parcel_count": parcel_count,
+		"peak_revenue": peak_revenue,
+		"chart_labels": chart_labels,
+		"chart_data": chart_data,
+		"revenue_data": revenue_data,
+	}
+
+
+@frappe.whitelist()
+def export_revenue_excel(start_date=None, end_date=None):
+	"""Export revenue data to Excel file."""
+	from frappe.utils.xlsxutils import make_xlsx
+
+	if not start_date:
+		start_date = today()
+	if not end_date:
+		end_date = today()
+
+	orders = frappe.get_all(
+		"Restaurant Order",
+		filters={
+			"status": ["in", ["In Progress", "Completed"]],
+			"order_date": ["between", [getdate(start_date), add_days(getdate(end_date), 1)]],
+		},
+		fields=["name", "order_type", "total_amount", "order_date", "status", "customer_name"],
+		order_by="order_date desc",
+	)
+
+	data = [["Order ID", "Date", "Time", "Order Type", "Customer", "Amount", "Status"]]
+	for order in orders:
+		order_dt = order.order_date
+		data.append([
+			order.name,
+			getdate(order_dt).strftime("%Y-%m-%d") if order_dt else "",
+			order_dt.strftime("%H:%M:%S") if order_dt else "",
+			order.order_type,
+			order.customer_name or "Walk In",
+			flt(order.total_amount),
+			order.status,
+		])
+
+	xlsx_file = make_xlsx(data, "Revenue Report")
+
+	frappe.response["filename"] = f"revenue_report_{start_date}_to_{end_date}.xlsx"
+	frappe.response["filecontent"] = xlsx_file.getvalue()
+	frappe.response["type"] = "binary"
+
+
+@frappe.whitelist()
+def send_whatsapp_report():
+	"""Generate a WhatsApp message URL with today's revenue summary."""
+	settings = frappe.get_single("Restaurant Settings")
+	data = get_revenue_data("daily")
+
+	message = f"""*Daily Revenue Report - {settings.restaurant_name}*
+Date: {today()}
+
+💰 Total Revenue: {settings.default_currency_symbol}{data['total_revenue']:,.2f}
+📦 Total Orders: {data['total_orders']}
+🍽️ Dine-in: {data['dine_in_count']}
+📋 Parcel: {data['parcel_count']}
+📊 Avg Order Value: {settings.default_currency_symbol}{data['avg_order_value']:,.2f}
+
+Generated by {settings.restaurant_name}"""
+
+	import urllib.parse
+	encoded_message = urllib.parse.quote(message)
+
+	phone = settings.whatsapp_number or ""
+	if phone:
+		whatsapp_url = f"https://wa.me/{phone}?text={encoded_message}"
+	else:
+		whatsapp_url = f"https://wa.me/?text={encoded_message}"
+
+	return {"success": True, "whatsapp_url": whatsapp_url, "message": message}
+
+
+@frappe.whitelist()
+def create_invoice_for_order(order_name):
+	"""Manually create a Sales Invoice for a completed order."""
+	order = frappe.get_doc("Restaurant Order", order_name)
+	if order.sales_invoice:
+		frappe.throw(_("Sales Invoice already exists for this order"))
+
+	order.create_sales_invoice()
+	return order.sales_invoice
+
+
+@frappe.whitelist()
+def get_kot_data(order_name):
+	"""Generate KOT (Kitchen Order Ticket) HTML for printing."""
+	order = frappe.get_doc("Restaurant Order", order_name)
+	settings = frappe.get_single("Restaurant Settings")
+
+	table_info = ""
+	if order.order_type == "Dine In" and order.table:
+		table = frappe.get_doc("Restaurant Table", order.table)
+		table_info = f"Table #{table.table_number}"
+	else:
+		table_info = "PARCEL"
+
+	items_html = ""
+	for item in order.items:
+		items_html += f"""
+		<tr>
+			<td style="padding:6px 12px;border-bottom:1px dashed #ccc;font-size:14px;">{item.item_name}</td>
+			<td style="padding:6px 12px;border-bottom:1px dashed #ccc;font-size:14px;text-align:center;font-weight:bold;">{item.quantity}</td>
+		</tr>"""
+
+	html = f"""<!DOCTYPE html>
+<html>
+<head>
+	<style>
+		body {{ font-family: 'Courier New', monospace; margin: 0; padding: 20px; background: #fff; }}
+		.kot-container {{ max-width: 300px; margin: 0 auto; border: 2px dashed #333; padding: 15px; }}
+		.kot-header {{ text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 10px; }}
+		.kot-header h2 {{ margin: 0; font-size: 18px; letter-spacing: 2px; }}
+		.kot-header p {{ margin: 5px 0; font-size: 12px; }}
+		.table-info {{ text-align: center; font-size: 20px; font-weight: bold; margin: 10px 0; padding: 8px; background: #333; color: #fff; }}
+		table {{ width: 100%; border-collapse: collapse; }}
+		th {{ padding: 6px 12px; border-bottom: 2px solid #333; font-size: 12px; text-transform: uppercase; }}
+		.kot-footer {{ text-align: center; margin-top: 10px; padding-top: 10px; border-top: 2px dashed #333; font-size: 11px; }}
+	</style>
+</head>
+<body>
+	<div class="kot-container">
+		<div class="kot-header">
+			<h2>🍽️ KOT</h2>
+			<p>Kitchen Order Ticket</p>
+			<p>Order: {order.name}</p>
+		</div>
+		<div class="table-info">{table_info}</div>
+		<table>
+			<thead>
+				<tr>
+					<th style="text-align:left;">Item</th>
+					<th style="text-align:center;">Qty</th>
+				</tr>
+			</thead>
+			<tbody>{items_html}</tbody>
+		</table>
+		{f'<p style="margin-top:10px;font-style:italic;font-size:12px;">Note: {order.notes}</p>' if order.notes else ''}
+		<div class="kot-footer">
+			<p>{order.order_date}</p>
+			<p>{settings.restaurant_name}</p>
+		</div>
+	</div>
+</body>
+</html>"""
+
+	return html
+
+
+@frappe.whitelist()
+def get_bill_data(order_name):
+	"""Generate Bill/Receipt HTML for printing."""
+	order = frappe.get_doc("Restaurant Order", order_name)
+	settings = frappe.get_single("Restaurant Settings")
+
+	table_info = ""
+	if order.order_type == "Dine In" and order.table:
+		table = frappe.get_doc("Restaurant Table", order.table)
+		table_info = f"Table #{table.table_number}"
+	else:
+		table_info = "Parcel Order"
+
+	items_html = ""
+	for idx, item in enumerate(order.items, 1):
+		items_html += f"""
+		<tr>
+			<td style="padding:8px 12px;border-bottom:1px solid #eee;">{idx}</td>
+			<td style="padding:8px 12px;border-bottom:1px solid #eee;">{item.item_name}</td>
+			<td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:center;">{item.quantity}</td>
+			<td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right;">{settings.default_currency_symbol}{flt(item.rate):,.2f}</td>
+			<td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right;">{settings.default_currency_symbol}{flt(item.amount):,.2f}</td>
+		</tr>"""
+
+	html = f"""<!DOCTYPE html>
+<html>
+<head>
+	<style>
+		body {{ font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }}
+		.bill-container {{ max-width: 500px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 30px; }}
+		.bill-header {{ text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #2D3250; }}
+		.bill-header h1 {{ margin: 0; color: #2D3250; font-size: 24px; }}
+		.bill-header p {{ margin: 4px 0; color: #666; font-size: 13px; }}
+		.bill-meta {{ display: flex; justify-content: space-between; margin-bottom: 20px; padding: 12px; background: #f8f9fa; border-radius: 8px; }}
+		.bill-meta span {{ font-size: 13px; color: #555; }}
+		table {{ width: 100%; border-collapse: collapse; margin-bottom: 15px; }}
+		th {{ padding: 10px 12px; background: #2D3250; color: #fff; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }}
+		th:first-child {{ border-radius: 6px 0 0 0; }}
+		th:last-child {{ border-radius: 0 6px 0 0; }}
+		.total-row {{ background: #f8f9fa; font-weight: bold; }}
+		.total-row td {{ padding: 12px; font-size: 16px; border-top: 2px solid #2D3250; }}
+		.bill-footer {{ text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px dashed #ccc; }}
+		.bill-footer p {{ margin: 3px 0; color: #888; font-size: 12px; }}
+		.print-btn {{ display: inline-block; padding: 10px 25px; background: linear-gradient(135deg, #F6B17A, #E8985E); color: #333; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; margin-top: 15px; }}
+		.print-btn:hover {{ transform: translateY(-2px); box-shadow: 0 4px 15px rgba(246,177,122,0.4); }}
+		@media print {{ .no-print {{ display: none; }} body {{ background: #fff; padding: 0; }} .bill-container {{ box-shadow: none; }} }}
+	</style>
+</head>
+<body>
+	<div class="bill-container">
+		<div class="no-print" style="text-align:right;margin-bottom:15px;">
+			<button onclick="window.print()" class="print-btn">🖨️ Print Receipt</button>
+		</div>
+		<div class="bill-header">
+			<h1>{settings.restaurant_name}</h1>
+			<p>{settings.address or ''}</p>
+			{f'<p>{settings.receipt_header}</p>' if settings.receipt_header else ''}
+		</div>
+		<div class="bill-meta">
+			<span><strong>Invoice:</strong> {order.name}</span>
+			<span><strong>Type:</strong> {table_info}</span>
+			<span><strong>Date:</strong> {order.order_date}</span>
+		</div>
+		{f'<p style="margin-bottom:15px;color:#555;">Customer: {order.customer_name}</p>' if order.customer_name else ''}
+		<table>
+			<thead>
+				<tr>
+					<th style="text-align:left;">#</th>
+					<th style="text-align:left;">Item</th>
+					<th style="text-align:center;">Qty</th>
+					<th style="text-align:right;">Rate</th>
+					<th style="text-align:right;">Amount</th>
+				</tr>
+			</thead>
+			<tbody>
+				{items_html}
+				<tr class="total-row">
+					<td colspan="4" style="text-align:right;">Total:</td>
+					<td style="text-align:right;">{settings.default_currency_symbol}{flt(order.total_amount):,.2f}</td>
+				</tr>
+			</tbody>
+		</table>
+		<div class="bill-footer">
+			<p>{settings.receipt_footer or 'Thank you for dining with us!'}</p>
+			<p>Powered by {settings.restaurant_name}</p>
+		</div>
+	</div>
+</body>
+</html>"""
+
+	return html

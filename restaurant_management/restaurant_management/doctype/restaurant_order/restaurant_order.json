@@ -1,0 +1,215 @@
+{
+    "actions": [],
+    "allow_rename": 0,
+    "autoname": "naming_series:",
+    "creation": "2026-03-02 10:00:00.000000",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "naming_series",
+        "order_type",
+        "table",
+        "status",
+        "column_break_1",
+        "order_date",
+        "customer_name",
+        "section_break_items",
+        "items",
+        "section_break_totals",
+        "total_amount",
+        "column_break_totals",
+        "total_qty",
+        "section_break_notes",
+        "notes",
+        "section_break_invoice",
+        "sales_invoice",
+        "amended_from"
+    ],
+    "fields": [
+        {
+            "fieldname": "naming_series",
+            "fieldtype": "Select",
+            "label": "Series",
+            "options": "RO-.YYYY.-",
+            "default": "RO-.YYYY.-",
+            "reqd": 1,
+            "set_only_once": 1
+        },
+        {
+            "fieldname": "order_type",
+            "fieldtype": "Select",
+            "label": "Order Type",
+            "options": "Dine In\nParcel",
+            "default": "Dine In",
+            "reqd": 1,
+            "in_list_view": 1,
+            "in_standard_filter": 1
+        },
+        {
+            "fieldname": "table",
+            "fieldtype": "Link",
+            "label": "Table",
+            "options": "Restaurant Table",
+            "depends_on": "eval:doc.order_type=='Dine In'",
+            "mandatory_depends_on": "eval:doc.order_type=='Dine In'",
+            "in_list_view": 1,
+            "in_standard_filter": 1
+        },
+        {
+            "fieldname": "status",
+            "fieldtype": "Select",
+            "label": "Status",
+            "options": "Draft\nIn Progress\nCompleted\nCancelled",
+            "default": "Draft",
+            "reqd": 1,
+            "in_list_view": 1,
+            "in_standard_filter": 1
+        },
+        {
+            "fieldname": "column_break_1",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "order_date",
+            "fieldtype": "Datetime",
+            "label": "Order Date",
+            "default": "Now",
+            "reqd": 1,
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "customer_name",
+            "fieldtype": "Data",
+            "label": "Customer Name",
+            "description": "Optional — for walk-in customers"
+        },
+        {
+            "fieldname": "section_break_items",
+            "fieldtype": "Section Break",
+            "label": "Order Items"
+        },
+        {
+            "fieldname": "items",
+            "fieldtype": "Table",
+            "label": "Items",
+            "options": "Restaurant Order Item",
+            "reqd": 1
+        },
+        {
+            "fieldname": "section_break_totals",
+            "fieldtype": "Section Break",
+            "label": "Totals"
+        },
+        {
+            "fieldname": "total_amount",
+            "fieldtype": "Currency",
+            "label": "Total Amount",
+            "read_only": 1,
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "column_break_totals",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "total_qty",
+            "fieldtype": "Int",
+            "label": "Total Quantity",
+            "read_only": 1
+        },
+        {
+            "fieldname": "section_break_notes",
+            "fieldtype": "Section Break",
+            "label": "Additional Information",
+            "collapsible": 1
+        },
+        {
+            "fieldname": "notes",
+            "fieldtype": "Small Text",
+            "label": "Special Instructions / Notes"
+        },
+        {
+            "fieldname": "section_break_invoice",
+            "fieldtype": "Section Break",
+            "label": "ERPNext Integration",
+            "collapsible": 1
+        },
+        {
+            "fieldname": "sales_invoice",
+            "fieldtype": "Link",
+            "label": "Sales Invoice",
+            "options": "Sales Invoice",
+            "read_only": 1
+        },
+        {
+            "fieldname": "amended_from",
+            "fieldtype": "Link",
+            "label": "Amended From",
+            "no_copy": 1,
+            "options": "Restaurant Order",
+            "print_hide": 1,
+            "read_only": 1,
+            "search_index": 1
+        }
+    ],
+    "index_web_pages_for_search": 0,
+    "links": [
+        {
+            "link_doctype": "Sales Invoice",
+            "link_fieldname": "restaurant_order"
+        }
+    ],
+    "modified": "2026-03-02 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Restaurant Management",
+    "name": "Restaurant Order",
+    "naming_rule": "By \"Naming Series\" field",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        },
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "All",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": [
+        {
+            "title": "Draft",
+            "color": "blue"
+        },
+        {
+            "title": "In Progress",
+            "color": "orange"
+        },
+        {
+            "title": "Completed",
+            "color": "green"
+        },
+        {
+            "title": "Cancelled",
+            "color": "red"
+        }
+    ],
+    "track_changes": 1
+}
