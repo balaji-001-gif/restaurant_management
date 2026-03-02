@@ -133,22 +133,187 @@ def update_order_status(order_name, status):
 
 @frappe.whitelist()
 def collect_payment(order_name, payment_mode="Cash"):
-	"""Collect payment for an order."""
+	"""Collect payment for an order — auto-creates Sales Invoice + Payment Entry."""
 	order = frappe.get_doc("Restaurant Order", order_name)
 	if order.payment_status == "Paid":
 		frappe.throw(_("Payment already collected for this order"))
 
+	# 1. Mark order as Paid
 	order.payment_status = "Paid"
 	order.payment_mode = payment_mode
 	order.paid_amount = order.total_amount
 	order.save(ignore_permissions=True)
 
+	invoice_name = None
+	payment_entry_name = None
+
+	try:
+		# 2. Auto-create Sales Invoice
+		company = frappe.defaults.get_defaults().get("company")
+		if company:
+			invoice_name = _create_sales_invoice_for_order(order, company)
+
+			# 3. Auto-create Payment Entry against the invoice
+			if invoice_name:
+				payment_entry_name = _create_payment_entry(
+					invoice_name, order.total_amount, payment_mode, company
+				)
+	except Exception as e:
+		frappe.log_error(
+			f"Auto invoice/payment failed for {order_name}: {str(e)}",
+			"Restaurant Payment"
+		)
+
+	msg = _("Payment of {0} collected via {1}").format(order.total_amount, payment_mode)
+	if invoice_name:
+		msg += _(" — Invoice {0}").format(invoice_name)
+	if payment_entry_name:
+		msg += _(" (Paid)")
+
 	return {
 		"status": "success",
-		"message": _("Payment of {0} collected via {1}").format(
-			order.total_amount, payment_mode
-		),
+		"message": msg,
+		"invoice": invoice_name,
+		"payment_entry": payment_entry_name,
 	}
+
+
+def _create_sales_invoice_for_order(order, company):
+	"""Create and submit a Sales Invoice for the order."""
+	default_income_account = frappe.get_cached_value(
+		"Company", company, "default_income_account"
+	)
+
+	# Resolve customer
+	customer = _resolve_customer(order.customer_name)
+	if not customer:
+		return None
+
+	si = frappe.get_doc({
+		"doctype": "Sales Invoice",
+		"company": company,
+		"customer": customer,
+		"posting_date": frappe.utils.today(),
+		"due_date": frappe.utils.today(),
+		"is_pos": 0,
+		"update_stock": 0,
+	})
+
+	for item in order.items:
+		si.append("items", {
+			"item_name": item.item_name,
+			"description": item.item_name,
+			"qty": item.quantity,
+			"rate": item.rate,
+			"amount": item.amount,
+			"income_account": default_income_account,
+		})
+
+	si.flags.ignore_mandatory = True
+	si.insert(ignore_permissions=True)
+	si.submit()
+
+	# Link invoice to order
+	order.db_set("sales_invoice", si.name)
+
+	return si.name
+
+
+def _create_payment_entry(invoice_name, amount, payment_mode, company):
+	"""Create and submit a Payment Entry against the Sales Invoice."""
+	# Get default accounts
+	default_bank = frappe.get_cached_value("Company", company, "default_bank_account")
+	default_cash = frappe.get_cached_value("Company", company, "default_cash_account")
+	receivable_account = frappe.get_cached_value(
+		"Company", company, "default_receivable_account"
+	)
+
+	# Choose account based on payment mode
+	if payment_mode in ["Card", "UPI"]:
+		paid_to = default_bank or default_cash
+	else:
+		paid_to = default_cash or default_bank
+
+	if not paid_to:
+		frappe.log_error("No default bank/cash account set for company", "Restaurant Payment")
+		return None
+
+	# Get the invoice to find the customer
+	si = frappe.get_doc("Sales Invoice", invoice_name)
+
+	pe = frappe.get_doc({
+		"doctype": "Payment Entry",
+		"payment_type": "Receive",
+		"party_type": "Customer",
+		"party": si.customer,
+		"company": company,
+		"posting_date": frappe.utils.today(),
+		"paid_from": receivable_account,
+		"paid_to": paid_to,
+		"paid_amount": amount,
+		"received_amount": amount,
+		"reference_no": invoice_name,
+		"reference_date": frappe.utils.today(),
+		"mode_of_payment": _get_mode_of_payment(payment_mode),
+	})
+
+	pe.append("references", {
+		"reference_doctype": "Sales Invoice",
+		"reference_name": invoice_name,
+		"total_amount": amount,
+		"outstanding_amount": amount,
+		"allocated_amount": amount,
+	})
+
+	pe.flags.ignore_mandatory = True
+	pe.insert(ignore_permissions=True)
+	pe.submit()
+
+	return pe.name
+
+
+def _get_mode_of_payment(payment_mode):
+	"""Map restaurant payment mode to ERPNext Mode of Payment."""
+	mode_map = {
+		"Cash": "Cash",
+		"Card": "Credit Card",
+		"UPI": "Bank Draft",
+		"Other": "Cash",
+	}
+	mode = mode_map.get(payment_mode, "Cash")
+
+	# Check if the mode exists, fallback to Cash
+	if not frappe.db.exists("Mode of Payment", mode):
+		if frappe.db.exists("Mode of Payment", "Cash"):
+			return "Cash"
+		return None
+	return mode
+
+
+def _resolve_customer(customer_name=None):
+	"""Find or create a walk-in customer."""
+	if customer_name:
+		existing = frappe.db.get_value("Customer", {"customer_name": customer_name})
+		if existing:
+			return existing
+
+	for walk_in in ["Walk In Customer", "Walk-in Customer", "Guest", "Cash Customer"]:
+		if frappe.db.exists("Customer", walk_in):
+			return walk_in
+
+	try:
+		customer = frappe.get_doc({
+			"doctype": "Customer",
+			"customer_name": "Walk In Customer",
+			"customer_type": "Individual",
+			"customer_group": frappe.db.get_single_value("Selling Settings", "customer_group") or "All Customer Groups",
+			"territory": frappe.db.get_single_value("Selling Settings", "territory") or "All Territories",
+		})
+		customer.insert(ignore_permissions=True)
+		return customer.name
+	except Exception:
+		return None
+
 
 
 @frappe.whitelist()
