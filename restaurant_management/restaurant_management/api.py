@@ -113,17 +113,26 @@ def cancel_order(order_name):
 def clear_table(table_name):
 	"""Clear a table — complete its current order and free it."""
 	table = frappe.get_doc("Restaurant Table", table_name)
+	table_number = table.table_number
+
 	if table.current_order:
 		order = frappe.get_doc("Restaurant Order", table.current_order)
 		if order.status == "In Progress":
+			# Setting status to Completed triggers on_update → complete_order()
+			# which handles freeing the table automatically
 			order.status = "Completed"
 			order.save(ignore_permissions=True)
+		else:
+			# Order is already completed/cancelled, just free the table directly
+			table.status = "Available"
+			table.current_order = None
+			table.save(ignore_permissions=True)
+	else:
+		# No order on table, just ensure it's Available
+		table.status = "Available"
+		table.save(ignore_permissions=True)
 
-	table.status = "Available"
-	table.current_order = None
-	table.save(ignore_permissions=True)
-
-	return {"status": "success", "message": _("Table {0} cleared").format(table.table_number)}
+	return {"status": "success", "message": _("Table {0} cleared").format(table_number)}
 
 
 @frappe.whitelist()
