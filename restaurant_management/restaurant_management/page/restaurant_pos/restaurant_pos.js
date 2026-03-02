@@ -205,6 +205,8 @@ class RestaurantPOS {
 
             if (new_status === "PAYMENT") {
                 this.show_payment_dialog(order_name);
+            } else if (new_status === "PRINT_BILL") {
+                this.print_bill(order_name);
             } else {
                 this.update_order_status(order_name, new_status);
             }
@@ -230,12 +232,15 @@ class RestaurantPOS {
 				</button>`;
                 break;
             case "Served":
+                btns = `<button class="ol-action-btn ol-btn-print" data-order="${order.name}" data-status="PRINT_BILL">
+					🧾 Print Bill
+				</button>`;
                 if (order.payment_status !== "Paid") {
-                    btns = `<button class="ol-action-btn ol-btn-payment" data-order="${order.name}" data-status="PAYMENT">
+                    btns += `<button class="ol-action-btn ol-btn-payment" data-order="${order.name}" data-status="PAYMENT">
 						💰 Collect Payment
 					</button>`;
                 } else {
-                    btns = `<button class="ol-action-btn ol-btn-complete" data-order="${order.name}" data-status="Completed">
+                    btns += `<button class="ol-action-btn ol-btn-complete" data-order="${order.name}" data-status="Completed">
 						✔️ Complete
 					</button>`;
                 }
@@ -299,6 +304,21 @@ class RestaurantPOS {
             },
         });
         d.show();
+    }
+
+    print_bill(order_name) {
+        frappe.call({
+            method: "restaurant_management.restaurant_management.api.get_bill_data",
+            args: { order_name: order_name },
+            callback: (res) => {
+                if (res.message) {
+                    let w = window.open();
+                    w.document.write(res.message);
+                    w.document.close();
+                    w.print();
+                }
+            },
+        });
     }
 
     time_ago(dt) {
@@ -385,9 +405,12 @@ class RestaurantPOS {
 
         let items = this.menu_items[category] || [];
         items.forEach((item) => {
+            let imgHtml = item.image
+                ? `<img src="${item.image}" class="item-image" alt="${item.item_name}" onerror="this.outerHTML='<div class=\'item-image item-placeholder\'><i class=\'fa fa-utensils\'></i></div>'">`
+                : '<div class="item-image item-placeholder"><i class="fa fa-utensils"></i></div>';
             $container.append(`
 				<div class="menu-item-card" data-item="${item.name}">
-					${item.image ? `<div class="item-image" style="background-image:url(${item.image})"></div>` : '<div class="item-image item-placeholder"><i class="fa fa-utensils"></i></div>'}
+					${imgHtml}
 					<div class="item-info">
 						<div class="item-name">${item.item_name}</div>
 						${item.description ? `<div class="item-desc">${item.description}</div>` : ''}
@@ -425,9 +448,12 @@ class RestaurantPOS {
 
         Object.values(this.menu_items).flat().forEach((item) => {
             if (item.item_name.toLowerCase().includes(search_text)) {
+                let imgHtml = item.image
+                    ? `<img src="${item.image}" class="item-image" alt="${item.item_name}" onerror="this.outerHTML='<div class=\'item-image item-placeholder\'><i class=\'fa fa-utensils\'></i></div>'">`
+                    : '<div class="item-image item-placeholder"><i class="fa fa-utensils"></i></div>';
                 $container.append(`
 					<div class="menu-item-card" data-item="${item.name}">
-						${item.image ? `<div class="item-image" style="background-image:url(${item.image})"></div>` : '<div class="item-image item-placeholder"><i class="fa fa-utensils"></i></div>'}
+						${imgHtml}
 						<div class="item-info">
 							<div class="item-name">${item.item_name}</div>
 							<div class="item-price">${this.currency_symbol}${parseFloat(item.price).toFixed(2)}</div>
