@@ -88,6 +88,7 @@ class KitchenDisplay {
             let elapsed = this.get_elapsed_time(order.order_date);
             let urgency_class = this.get_urgency_class(elapsed.minutes);
 
+            let items_html = "";
             (order.items || []).forEach((item) => {
                 let is_prepared = item.status === "Prepared";
                 items_html += `
