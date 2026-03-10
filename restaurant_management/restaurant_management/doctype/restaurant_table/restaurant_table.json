@@ -7,6 +7,7 @@
     "engine": "InnoDB",
     "field_order": [
         "table_number",
+        "branch",
         "status",
         "column_break_1",
         "seating_capacity",
@@ -20,7 +21,14 @@
             "fieldtype": "Int",
             "label": "Table Number",
             "reqd": 1,
-            "unique": 1,
+            "in_list_view": 1,
+            "in_standard_filter": 1
+        },
+        {
+            "fieldname": "branch",
+            "fieldtype": "Link",
+            "label": "Branch",
+            "options": "Restaurant Branch",
             "in_list_view": 1,
             "in_standard_filter": 1
         },

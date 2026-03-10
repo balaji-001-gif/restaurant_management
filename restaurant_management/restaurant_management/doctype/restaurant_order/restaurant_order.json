@@ -8,6 +8,7 @@
     "field_order": [
         "naming_series",
         "order_type",
+        "branch",
         "table",
         "status",
         "column_break_1",
@@ -47,6 +48,14 @@
             "options": "Dine In\nParcel",
             "default": "Dine In",
             "reqd": 1,
+            "in_list_view": 1,
+            "in_standard_filter": 1
+        },
+        {
+            "fieldname": "branch",
+            "fieldtype": "Link",
+            "label": "Branch",
+            "options": "Restaurant Branch",
             "in_list_view": 1,
             "in_standard_filter": 1
         },

@@ -17,8 +17,25 @@ class KitchenDisplay {
 
         this.setup_clock();
         this.setup_events();
+        this.load_branches();
         this.load_orders();
         this.start_auto_refresh();
+    }
+
+    load_branches() {
+        frappe.call({
+            method: "restaurant_management.restaurant_management.api.get_branches",
+            callback: (r) => {
+                let $branchSelect = $("#kds-branch");
+                if (r.message && r.message.length > 0) {
+                    r.message.forEach((branch) => {
+                        $branchSelect.append(`<option value="${branch.name}" style="color: #000;">${branch.branch_name}</option>`);
+                    });
+                } else {
+                    $branchSelect.hide();
+                }
+            }
+        });
     }
 
     setup_clock() {
@@ -46,6 +63,11 @@ class KitchenDisplay {
                 document.exitFullscreen();
             }
         });
+
+        // Branch filter
+        $("#kds-branch").on("change", () => {
+            this.load_orders();
+        });
     }
 
     start_auto_refresh() {
@@ -55,8 +77,10 @@ class KitchenDisplay {
     }
 
     load_orders() {
+        let branch = $("#kds-branch").val() || null;
         frappe.call({
             method: "restaurant_management.restaurant_management.api.get_kitchen_orders",
+            args: { branch: branch },
             callback: (r) => {
                 if (r.message) {
                     this.orders = r.message;

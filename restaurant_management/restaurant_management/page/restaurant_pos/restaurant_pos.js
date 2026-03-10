@@ -22,8 +22,25 @@ class RestaurantPOS {
 
         this.load_settings();
         this.setup_events();
+        this.load_branches();
         this.load_menu();
         this.load_tables();
+    }
+
+    load_branches() {
+        frappe.call({
+            method: "restaurant_management.restaurant_management.api.get_branches",
+            callback: (r) => {
+                let $branchSelect = $("#branch-selector");
+                if (r.message && r.message.length > 0) {
+                    r.message.forEach((branch) => {
+                        $branchSelect.append(`<option value="${branch.name}">${branch.branch_name}</option>`);
+                    });
+                } else {
+                    $branchSelect.hide();
+                }
+            }
+        });
     }
 
     load_settings() {
@@ -86,6 +103,12 @@ class RestaurantPOS {
             this.selected_table = $(e.currentTarget).val();
         });
 
+        // Branch selector
+        $("#branch-selector").on("change", (e) => {
+            this.load_tables();
+            this.load_orders();
+        });
+
         // Menu search
         $("#menu-search").on("input", (e) => {
             this.filter_menu($(e.currentTarget).val());
@@ -112,6 +135,11 @@ class RestaurantPOS {
             filters.status = ["in", ["In Progress", "Preparing", "Ready", "Served"]];
         } else {
             filters.status = this.orders_filter;
+        }
+
+        let branch = $("#branch-selector").val();
+        if (branch) {
+            filters.branch = branch;
         }
 
         frappe.call({
@@ -370,8 +398,10 @@ class RestaurantPOS {
     }
 
     load_tables() {
+        let branch = $("#branch-selector").val() || null;
         frappe.call({
             method: "restaurant_management.restaurant_management.api.get_tables",
+            args: { branch: branch },
             callback: (r) => {
                 if (r.message) {
                     let $select = $("#table-selector");
@@ -591,12 +621,15 @@ class RestaurantPOS {
             quantity: item.quantity,
         }));
 
+        let branch = $("#branch-selector").val() || null;
+
         frappe.call({
             method: "restaurant_management.restaurant_management.api.create_order",
             args: {
                 items: JSON.stringify(order_items),
                 order_type: this.order_type,
                 table: this.selected_table || "",
+                branch: branch,
             },
             callback: (r) => {
                 if (r.message) {
