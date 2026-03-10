@@ -11,7 +11,12 @@ import json
 @frappe.whitelist()
 def get_branches():
 	"""Get all restaurant branches."""
-	return frappe.get_all("Restaurant Branch", fields=["name", "branch_name"], order_by="branch_name asc")
+	try:
+		return frappe.get_all("Restaurant Branch", fields=["name", "branch_name"], order_by="branch_name asc")
+	except Exception as e:
+		if frappe.db.is_table_missing("Restaurant Branch"):
+			return []
+		raise e
 
 
 @frappe.whitelist()
