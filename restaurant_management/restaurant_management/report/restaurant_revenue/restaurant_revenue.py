@@ -24,6 +24,13 @@ def get_columns():
 			"width": 120,
 		},
 		{
+			"label": _("Branch"),
+			"fieldname": "branch",
+			"fieldtype": "Link",
+			"options": "Restaurant Branch",
+			"width": 120,
+		},
+		{
 			"label": _("Total Orders"),
 			"fieldname": "total_orders",
 			"fieldtype": "Int",
@@ -63,6 +70,7 @@ def get_data(filters):
 		"""
 		SELECT
 			DATE(order_date) as date,
+			branch,
 			COUNT(*) as total_orders,
 			SUM(CASE WHEN order_type = 'Dine In' THEN 1 ELSE 0 END) as dine_in_count,
 			SUM(CASE WHEN order_type = 'Parcel' THEN 1 ELSE 0 END) as parcel_count,
@@ -71,8 +79,8 @@ def get_data(filters):
 		FROM `tabRestaurant Order`
 		WHERE status IN ('In Progress', 'Completed')
 		{conditions}
-		GROUP BY DATE(order_date)
-		ORDER BY DATE(order_date) DESC
+		GROUP BY DATE(order_date), branch
+		ORDER BY DATE(order_date) DESC, branch ASC
 		""".format(conditions=conditions),
 		filters,
 		as_dict=1,
@@ -90,6 +98,8 @@ def get_conditions(filters):
 			conditions += " AND DATE(order_date) <= %(to_date)s"
 		if filters.get("order_type"):
 			conditions += " AND order_type = %(order_type)s"
+		if filters.get("branch"):
+			conditions += " AND branch = %(branch)s"
 	return conditions
 
 

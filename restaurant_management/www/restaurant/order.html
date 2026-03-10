@@ -705,9 +705,10 @@
                     ${(data.branches || []).map(b => `<option value="${b.name}">${b.branch_name}</option>`).join('')}
                 </select>
                 ` : ''}
-                <input type="text" class="go-input" id="go-cust-name" placeholder="Your name (optional)">
-                <textarea class="go-input" id="go-notes" placeholder="Special instructions..." rows="2" style="resize:none;"></textarea>
-                <button class="go-submit" id="go-submit">${isAddMode ? '➕ Add to Order' : '✅ Place Order'}</button>
+                <input type="text" class="go-input" id="go-cust-name" placeholder="Your name (optional)" style="margin-bottom:8px;">
+                <input type="tel" class="go-input" id="go-cust-phone" placeholder="Your mobile number (required)" style="margin-bottom:8px;">
+                <textarea class="go-input" id="go-notes" placeholder="Special instructions..." rows="2" style="resize:none;margin-bottom:8px;"></textarea>
+                <button class="go-submit" id="go-submit" style="margin-top:10px;">${isAddMode ? '➕ Add to Order' : '✅ Place Order'}</button>
             </div>
         `;
 
@@ -854,9 +855,17 @@
                 });
             } else {
                 let customerName = document.getElementById("go-cust-name").value;
+                let customerPhone = document.getElementById("go-cust-phone").value;
                 let notes = document.getElementById("go-notes").value;
                 let branchSelect = document.getElementById("go-branch");
                 let branch = branchSelect ? branchSelect.value : null;
+
+                if (!customerPhone) {
+                    frappe.msgprint("Please enter your mobile number.");
+                    btn.disabled = false;
+                    btn.textContent = "✅ Place Order";
+                    return;
+                }
 
                 if (!table && !branch && branchSelect && branchSelect.options.length > 1) {
                     frappe.msgprint("Please select a branch to place your order.");
@@ -871,6 +880,7 @@
                         items: JSON.stringify(orderItems),
                         table: table || "",
                         customer_name: customerName,
+                        customer_phone: customerPhone,
                         notes: notes,
                         branch: branch || "",
                     },

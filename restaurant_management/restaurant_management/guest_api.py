@@ -57,7 +57,7 @@ def get_guest_menu(table=None):
 
 
 @frappe.whitelist(allow_guest=True)
-def place_guest_order(items, table=None, customer_name=None, notes=None, branch=None):
+def place_guest_order(items, table=None, customer_name=None, customer_phone=None, notes=None, branch=None):
 	"""Place an order from the guest QR code page. No login required."""
 	if isinstance(items, str):
 		items = json.loads(items)
@@ -81,6 +81,7 @@ def place_guest_order(items, table=None, customer_name=None, notes=None, branch=
 		"table": table if order_type == "Dine In" else None,
 		"branch": final_branch,
 		"customer_name": customer_name,
+		"customer_phone": customer_phone,
 		"notes": notes,
 		"order_date": now_datetime(),
 	})

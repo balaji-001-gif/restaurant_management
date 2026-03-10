@@ -414,11 +414,8 @@
 					</a>
 					<p style="color:#aaa;font-size:11px;margin:10px 0 5px;">UPI ID: ${data.upi.upi_id}</p>
 					<p style="color:#888;font-size:12px;margin:8px 0 12px;">
-						After completing payment in your UPI app, tap below:
+						Please wait while the cashier confirms your payment...
 					</p>
-					<button class="os-confirm-btn" id="confirm-paid-btn" data-order="${order.name}">
-						✅ I have paid
-					</button>
 				</div>
 			`;
             }
@@ -449,28 +446,6 @@
 
             document.getElementById("order-status-app").innerHTML = html;
 
-            // Bind confirm payment button
-            let confirmBtn = document.getElementById("confirm-paid-btn");
-            if (confirmBtn) {
-                confirmBtn.addEventListener("click", function () {
-                    let btn = this;
-                    btn.disabled = true;
-                    btn.textContent = "Verifying payment...";
-                    frappe.call({
-                        method: "restaurant_management.restaurant_management.guest_api.confirm_guest_payment",
-                        args: { order_name: btn.dataset.order },
-                        callback: function (r) {
-                            if (r.message) {
-                                loadStatus();
-                            }
-                        },
-                        error: function () {
-                            btn.disabled = false;
-                            btn.textContent = "✅ I have paid";
-                        }
-                    });
-                });
-            }
         }
     });
 </script>
