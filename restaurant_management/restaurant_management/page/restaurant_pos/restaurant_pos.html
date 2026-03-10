@@ -1,15 +1,22 @@
 <div id="restaurant-pos-app">
 	<!-- POS Tabs -->
 	<div class="pos-tabs">
-		<button class="pos-tab active" data-tab="new-order">
-			<i class="fa fa-plus-circle"></i> New Order
-		</button>
-		<button class="pos-tab" data-tab="orders-list">
-			<i class="fa fa-list"></i> Orders <span class="pos-tab-badge" id="orders-badge"></span>
-		</button>
-		<button class="pos-tab" data-tab="tables-view">
-			<i class="fa fa-th-large"></i> Tables
-		</button>
+		<div style="display: flex; gap: 10px;">
+			<button class="pos-tab active" data-tab="new-order">
+				<i class="fa fa-plus-circle"></i> New Order
+			</button>
+			<button class="pos-tab" data-tab="orders-list">
+				<i class="fa fa-list"></i> Orders <span class="pos-tab-badge" id="orders-badge"></span>
+			</button>
+			<button class="pos-tab" data-tab="tables-view">
+				<i class="fa fa-th-large"></i> Tables
+			</button>
+		</div>
+		<div style="margin-right: 15px;">
+			<select id="branch-selector" class="form-control table-select" style="min-width: 180px; background: #fff; font-weight: 500;">
+				<option value="">🏠 All Branches</option>
+			</select>
+		</div>
 	</div>
 
 	<!-- TAB 1: New Order -->
@@ -19,9 +26,6 @@
 				<h3 class="pos-title">🍽️ Restaurant POS</h3>
 			</div>
 			<div class="pos-header-right">
-				<select id="branch-selector" class="form-control table-select" style="min-width: 150px;">
-					<option value="">All Branches</option>
-				</select>
 				<div class="order-type-toggle">
 					<button class="btn btn-order-type active" data-type="Dine In">
 						<i class="fa fa-utensils"></i> Dine In

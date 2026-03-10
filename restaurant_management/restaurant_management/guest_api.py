@@ -37,17 +37,27 @@ def get_guest_menu(table=None):
 		if table_doc:
 			table_info = table_doc
 
+	# Get branches for Parcel orders / selection
+	branches = []
+	try:
+		branches = frappe.get_all("Restaurant Branch", fields=["name", "branch_name"], order_by="branch_name asc")
+	except frappe.exceptions.DoesNotExistError:
+		pass
+	except Exception:
+		pass
+
 	return {
 		"restaurant_name": settings.restaurant_name,
 		"currency_symbol": settings.default_currency_symbol or "₹",
 		"address": settings.address,
 		"menu": grouped,
 		"table": table_info,
+		"branches": branches,
 	}
 
 
 @frappe.whitelist(allow_guest=True)
-def place_guest_order(items, table=None, customer_name=None, notes=None):
+def place_guest_order(items, table=None, customer_name=None, notes=None, branch=None):
 	"""Place an order from the guest QR code page. No login required."""
 	if isinstance(items, str):
 		items = json.loads(items)
@@ -57,10 +67,19 @@ def place_guest_order(items, table=None, customer_name=None, notes=None):
 
 	order_type = "Dine In" if table else "Parcel"
 
+	# If table is given, fetch branch from it
+	final_branch = branch
+	if table:
+		try:
+			final_branch = frappe.db.get_value("Restaurant Table", table, "branch") or branch
+		except Exception:
+			pass
+
 	order = frappe.get_doc({
 		"doctype": "Restaurant Order",
 		"order_type": order_type,
 		"table": table if order_type == "Dine In" else None,
+		"branch": final_branch,
 		"customer_name": customer_name,
 		"notes": notes,
 		"order_date": now_datetime(),
@@ -245,8 +264,8 @@ def get_table_qr_data():
 # ===========================================================
 
 @frappe.whitelist(allow_guest=True)
-def get_available_slots(date, guests=2):
-	"""Get available time slots for a given date and guest count."""
+def get_available_slots(date, guests=2, branch=None):
+	"""Get available time slots for a given date, guest count, and optionally branch."""
 	guests = cint(guests) or 2
 
 	if str(date) < str(frappe.utils.today()):
@@ -269,9 +288,13 @@ def get_available_slots(date, guests=2):
 	]
 
 	# Get all tables that fit the guest count
+	table_filters = {"seating_capacity": [">=", guests]}
+	if branch:
+		table_filters["branch"] = branch
+
 	tables = frappe.get_all(
 		"Restaurant Table",
-		filters={"seating_capacity": [">=", guests]},
+		filters=table_filters,
 		fields=["name", "table_number", "seating_capacity"],
 		order_by="seating_capacity asc, table_number asc",
 	)
@@ -324,7 +347,7 @@ def get_available_slots(date, guests=2):
 
 
 @frappe.whitelist(allow_guest=True)
-def book_table(date, time_slot, guests, customer_name, phone, email=None, notes=None):
+def book_table(date, time_slot, guests, customer_name, phone, email=None, notes=None, branch=None):
 	"""Book a table — auto-assigns the best-fit available table."""
 	guests = cint(guests) or 2
 
@@ -332,10 +355,14 @@ def book_table(date, time_slot, guests, customer_name, phone, email=None, notes=
 		frappe.throw(_("Cannot book for past dates"))
 
 	# Find available tables for this slot
+	table_filters = {"seating_capacity": [">=", guests]}
+	if branch:
+		table_filters["branch"] = branch
+
 	tables = frappe.get_all(
 		"Restaurant Table",
-		filters={"seating_capacity": [">=", guests]},
-		fields=["name", "table_number", "seating_capacity"],
+		filters=table_filters,
+		fields=["name", "table_number", "seating_capacity", "branch"],
 		order_by="seating_capacity asc, table_number asc",
 	)
 
@@ -368,6 +395,7 @@ def book_table(date, time_slot, guests, customer_name, phone, email=None, notes=
 		"reservation_date": date,
 		"time_slot": time_slot,
 		"table": chosen.name,
+		"branch": chosen.get("branch") or branch,
 		"notes": notes,
 		"status": "Confirmed",
 	})

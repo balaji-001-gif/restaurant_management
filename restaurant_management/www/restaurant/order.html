@@ -699,6 +699,12 @@
                     <span>Total</span>
                     <span class="go-highlight" id="go-panel-total">${currency}0</span>
                 </div>
+                ${!tableInfo ? `
+                <select class="go-input" id="go-branch" style="margin-bottom:8px; background: rgba(0,0,0,0.2) !important;">
+                    <option value="">Select Branch (Required for Pickup)</option>
+                    ${(data.branches || []).map(b => `<option value="${b.name}">${b.branch_name}</option>`).join('')}
+                </select>
+                ` : ''}
                 <input type="text" class="go-input" id="go-cust-name" placeholder="Your name (optional)">
                 <textarea class="go-input" id="go-notes" placeholder="Special instructions..." rows="2" style="resize:none;"></textarea>
                 <button class="go-submit" id="go-submit">${isAddMode ? '➕ Add to Order' : '✅ Place Order'}</button>
@@ -849,6 +855,15 @@
             } else {
                 let customerName = document.getElementById("go-cust-name").value;
                 let notes = document.getElementById("go-notes").value;
+                let branchSelect = document.getElementById("go-branch");
+                let branch = branchSelect ? branchSelect.value : null;
+
+                if (!table && !branch && branchSelect && branchSelect.options.length > 1) {
+                    frappe.msgprint("Please select a branch to place your order.");
+                    btn.disabled = false;
+                    btn.textContent = "✅ Place Order";
+                    return;
+                }
 
                 frappe.call({
                     method: "restaurant_management.restaurant_management.guest_api.place_guest_order",
@@ -857,6 +872,7 @@
                         table: table || "",
                         customer_name: customerName,
                         notes: notes,
+                        branch: branch || "",
                     },
                     callback: function (r) {
                         if (r.message) {

@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 import json
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_branches():
 	"""Get all restaurant branches."""
 	try:

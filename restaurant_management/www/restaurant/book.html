@@ -198,9 +198,17 @@
 
 <script>
     frappe.ready(function () {
-        let state = { step: 1, date: "", guests: 2, slot: "", slots: [], restaurant: "" };
+        let state = { step: 1, date: "", guests: 2, slot: "", slots: [], restaurant: "", branch: "", branches: [] };
 
-        renderStep1();
+        frappe.call({
+            method: "restaurant_management.restaurant_management.api.get_branches",
+            callback: function (r) {
+                if (r.message) {
+                    state.branches = r.message;
+                }
+                renderStep1();
+            }
+        });
 
         function renderStep1() {
             let today = new Date().toISOString().split("T")[0];
@@ -225,6 +233,15 @@
 						</select>
 					</div>
 				</div>
+                ${state.branches && state.branches.length > 0 ? `
+				<div class="bk-input-group">
+					<label>Branch</label>
+					<select class="bk-input" id="bk-branch">
+                        <option value="">Any Branch</option>
+						${state.branches.map(b => `<option value="${b.name}" ${b.name == state.branch ? "selected" : ""}>${b.branch_name}</option>`).join('')}
+					</select>
+				</div>
+                ` : ""}
 				<button class="bk-btn" id="bk-check">🔍 Check Availability</button>
 			</div>
 		`;
@@ -234,6 +251,9 @@
         function checkSlots() {
             state.date = document.getElementById("bk-date").value;
             state.guests = document.getElementById("bk-guests").value;
+            let branchEl = document.getElementById("bk-branch");
+            state.branch = branchEl ? branchEl.value : "";
+            
             if (!state.date) return;
 
             let btn = document.getElementById("bk-check");
@@ -242,7 +262,7 @@
 
             frappe.call({
                 method: "restaurant_management.restaurant_management.guest_api.get_available_slots",
-                args: { date: state.date, guests: state.guests },
+                args: { date: state.date, guests: state.guests, branch: state.branch },
                 callback: function (r) {
                     if (r.message) {
                         state.slots = r.message.slots;
@@ -349,6 +369,7 @@
                     phone: phone,
                     email: document.getElementById("bk-email").value || "",
                     notes: document.getElementById("bk-notes").value || "",
+                    branch: state.branch,
                 },
                 callback: function (r) {
                     if (r.message && r.message.status === "success") renderConfirmation(r.message);
