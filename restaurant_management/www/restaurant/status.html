@@ -10,6 +10,9 @@
     </div>
 </div>
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
 <style>
     :root {
         --os-primary: #2D3250;
@@ -290,6 +293,51 @@
         opacity: 0.5;
         cursor: not-allowed;
     }
+
+    #os-map {
+        height: 300px;
+        width: calc(100% - 20px);
+        margin: 0 10px 20px;
+        border-radius: 14px;
+        z-index: 10;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .dboy-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 10px;
+        padding: 10px;
+        background: #fdfdfd;
+        border-radius: 10px;
+    }
+
+    .dboy-avatar {
+        width: 40px;
+        height: 40px;
+        background: var(--os-primary);
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    .dboy-info {
+        flex: 1;
+    }
+
+    .dboy-name {
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    .dboy-phone {
+        font-size: 12px;
+        color: #888;
+    }
 </style>
 
 <script>
@@ -306,6 +354,10 @@
 		`;
             return;
         }
+
+        let map = null;
+        let dboyMarker = null;
+        let branchMarker = null;
 
         loadStatus();
         // Auto-refresh every 8 seconds
@@ -347,9 +399,11 @@
                 "Served": "Enjoy your meal! 😋",
                 "Completed": "Thank you for dining with us!",
                 "Cancelled": "This order was cancelled.",
+                "Out for Delivery": "Our delivery hero is on the way!",
+                "Delivered": "Order delivered! Enjoy your food.",
             };
 
-            let tableInfo = order.table_number ? `Table ${order.table_number}` : "Parcel Order";
+            let tableInfo = order.table_number ? `Table ${order.table_number}` : (order.order_type === 'Delivery' ? 'Delivery Order' : 'Parcel Order');
 
             let html = `
 			<div class="os-header">
@@ -358,11 +412,28 @@
 			</div>
 
 			<div class="os-status-big">
-				<div class="os-status-icon">${statusIcons[order.status] || "📋"}</div>
+				<div class="os-status-icon">${statusIcons[order.status] || (order.order_type === 'Delivery' ? '🛵' : '📋')}</div>
 				<div class="os-status-text">${order.status}</div>
 				<div class="os-status-sub">${statusMessages[order.status] || ""}</div>
 			</div>
 		`;
+
+            // Live Tracking Map
+            if (order.order_type === "Delivery" && order.status === "Out for Delivery") {
+                html += `
+                <div class="os-card">
+                    <h3>📍 Live Tracking</h3>
+                    <div id="os-map"></div>
+                    <div class="dboy-card">
+                        <div class="dboy-avatar"><i class="fa fa-motorcycle"></i></div>
+                        <div class="dboy-info">
+                            <div class="dboy-name">${order.delivery_boy || 'Delivery Hero'}</div>
+                            <div class="dboy-phone">On his way to you!</div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
 
             // Timeline
             if (order.status !== "Cancelled") {
@@ -446,6 +517,58 @@
 
             document.getElementById("order-status-app").innerHTML = html;
 
+            // Initialize/Update Map
+            if (order.order_type === "Delivery" && order.status === "Out for Delivery") {
+                initTrackingMap(data);
+            } else {
+                map = null; // Reset if not out for delivery
+            }
+        }
+
+        function initTrackingMap(data) {
+            const tracking = data.delivery_tracking;
+            if (!tracking || !tracking.delivery_boy || !tracking.delivery_boy.last_latitude) return;
+
+            const dboyPos = [tracking.delivery_boy.last_latitude, tracking.delivery_boy.last_longitude];
+            const branchPos = tracking.branch && tracking.branch.latitude ? [tracking.branch.latitude, tracking.branch.longitude] : null;
+
+            setTimeout(() => {
+                if (!map) {
+                    map = L.map('os-map').setView(dboyPos, 15);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap'
+                    }).addTo(map);
+                }
+
+                // Update Delivery Boy Marker
+                if (dboyMarker) {
+                    dboyMarker.setLatLng(dboyPos);
+                } else {
+                    dboyMarker = L.marker(dboyPos).addTo(map).bindPopup('Delivery Hero').openPopup();
+                }
+
+                // Update Branch Marker
+                if (branchPos) {
+                    if (branchMarker) {
+                        branchMarker.setLatLng(branchPos);
+                    } else {
+                        branchMarker = L.circleMarker(branchPos, {
+                            color: '#2D3250',
+                            fillColor: '#F6B17A',
+                            fillOpacity: 0.8,
+                            radius: 8
+                        }).addTo(map).bindPopup('Restaurant');
+                    }
+                }
+
+                // Auto-zoom to fit markers
+                if (branchPos) {
+                    const bounds = L.latLngBounds([dboyPos, branchPos]);
+                    map.fitBounds(bounds, { padding: [30, 30] });
+                } else {
+                    map.panTo(dboyPos);
+                }
+            }, 100);
         }
     });
 </script>

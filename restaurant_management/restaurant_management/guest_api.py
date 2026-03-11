@@ -57,7 +57,7 @@ def get_guest_menu(table=None):
 
 
 @frappe.whitelist(allow_guest=True)
-def place_guest_order(items, table=None, customer_name=None, customer_phone=None, notes=None, branch=None):
+def place_guest_order(items, table=None, customer_name=None, customer_phone=None, notes=None, branch=None, delivery_address=None):
 	"""Place an order from the guest QR code page. No login required."""
 	if isinstance(items, str):
 		items = json.loads(items)
@@ -65,7 +65,13 @@ def place_guest_order(items, table=None, customer_name=None, customer_phone=None
 	if not items:
 		frappe.throw(_("Please add at least one item"))
 
-	order_type = "Dine In" if table else "Parcel"
+	# Determine order type
+	if table:
+		order_type = "Dine In"
+	elif delivery_address:
+		order_type = "Delivery"
+	else:
+		order_type = "Parcel"
 
 	# If table is given, fetch branch from it
 	final_branch = branch
@@ -83,6 +89,7 @@ def place_guest_order(items, table=None, customer_name=None, customer_phone=None
 		"customer_name": customer_name,
 		"customer_phone": customer_phone,
 		"notes": notes,
+		"delivery_address": delivery_address,
 		"order_date": now_datetime(),
 	})
 
@@ -178,11 +185,15 @@ def get_order_status(order_name):
 			"table_number": table_number,
 			"total_amount": order.total_amount,
 			"total_qty": order.total_qty,
-			"customer_name": order.customer_name,
-			"payment_status": order.payment_status,
 			"delivery_boy": order.delivery_boy,
 			"delivery_status": order.delivery_status,
 			"delivery_address": order.delivery_address,
+		},
+		"delivery_tracking": {
+			"delivery_boy": frappe.db.get_value("Restaurant Delivery Boy", order.delivery_boy, 
+				["last_latitude", "last_longitude", "last_location_update"], as_dict=True) if order.delivery_boy else None,
+			"branch": frappe.db.get_value("Restaurant Branch", order.branch, 
+				["latitude", "longitude"], as_dict=True) if order.branch else None
 		},
 		"items": items,
 		"timeline": timeline,

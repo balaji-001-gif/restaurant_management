@@ -11,7 +11,11 @@
         "status",
         "column_break_1",
         "vehicle_number",
-        "branch"
+        "branch",
+        "section_break_gps",
+        "last_latitude",
+        "last_longitude",
+        "last_location_update"
     ],
     "fields": [
         {
@@ -54,6 +58,30 @@
             "options": "Restaurant Branch",
             "in_list_view": 1,
             "in_standard_filter": 1
+        },
+        {
+            "fieldname": "section_break_gps",
+            "fieldtype": "Section Break",
+            "label": "Live Location",
+            "collapsible": 1
+        },
+        {
+            "fieldname": "last_latitude",
+            "fieldtype": "Float",
+            "label": "Last Latitude",
+            "read_only": 1
+        },
+        {
+            "fieldname": "last_longitude",
+            "fieldtype": "Float",
+            "label": "Last Longitude",
+            "read_only": 1
+        },
+        {
+            "fieldname": "last_location_update",
+            "fieldtype": "Datetime",
+            "label": "Last Location Update",
+            "read_only": 1
         }
     ],
     "index_web_pages_for_search": 0,

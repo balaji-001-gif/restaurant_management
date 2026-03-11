@@ -5,7 +5,10 @@
     "engine": "InnoDB",
     "field_order": [
         "branch_name",
-        "address"
+        "address",
+        "ordering_url",
+        "latitude",
+        "longitude"
     ],
     "fields": [
         {
@@ -20,6 +23,22 @@
             "fieldname": "address",
             "fieldtype": "Small Text",
             "label": "Address"
+        },
+        {
+            "fieldname": "ordering_url",
+            "fieldtype": "Data",
+            "label": "Ordering URL",
+            "read_only": 1
+        },
+        {
+            "fieldname": "latitude",
+            "fieldtype": "Float",
+            "label": "Latitude"
+        },
+        {
+            "fieldname": "longitude",
+            "fieldtype": "Float",
+            "label": "Longitude"
         }
     ],
     "index_web_pages_for_search": 1,

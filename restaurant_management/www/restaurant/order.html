@@ -629,11 +629,15 @@
         const table = document.getElementById("guest-order-app").dataset.table;
         const existingOrder = document.getElementById("guest-order-app").dataset.order;
         const isAddMode = !!existingOrder;
+        const urlParams = new URLSearchParams(window.location.search);
+        const branchParam = urlParams.get('branch');
+        
         let cart = {};
         let menuData = {};
         let currency = "₹";
         let cartOpen = false;
         let allItems = [];
+        let orderType = table ? "Dine In" : (branchParam ? "Delivery" : "Parcel");
 
         frappe.call({
             method: "restaurant_management.restaurant_management.guest_api.get_guest_menu",
@@ -699,12 +703,25 @@
                     <span>Total</span>
                     <span class="go-highlight" id="go-panel-total">${currency}0</span>
                 </div>
-                ${!tableInfo ? `
+
+                ${!table ? `
+                <div style="display:flex; gap:10px; margin-bottom:15px;">
+                    <button class="go-cat ${orderType === 'Parcel' ? 'active' : ''}" style="flex:1" onclick="setOrderType('Parcel')">📦 Takeaway</button>
+                    <button class="go-cat ${orderType === 'Delivery' ? 'active' : ''}" style="flex:1" onclick="setOrderType('Delivery')">🚚 Delivery</button>
+                </div>
+                ` : ''}
+
+                ${!table && !branchParam ? `
                 <select class="go-input" id="go-branch" style="margin-bottom:8px; background: rgba(0,0,0,0.2) !important;">
-                    <option value="">Select Branch (Required for Pickup)</option>
+                    <option value="">Select Branch (Required)</option>
                     ${(data.branches || []).map(b => `<option value="${b.name}">${b.branch_name}</option>`).join('')}
                 </select>
                 ` : ''}
+
+                <div id="delivery-info" style="display: ${orderType === 'Delivery' ? 'block' : 'none'}">
+                    <textarea class="go-input" id="go-delivery-addr" placeholder="Your delivery address (required)" rows="3" style="resize:none;margin-bottom:8px;"></textarea>
+                </div>
+                
                 <input type="text" class="go-input" id="go-cust-name" placeholder="Your name (optional)" style="margin-bottom:8px;">
                 <input type="tel" class="go-input" id="go-cust-phone" placeholder="Your mobile number (required)" style="margin-bottom:8px;">
                 <textarea class="go-input" id="go-notes" placeholder="Special instructions..." rows="2" style="resize:none;margin-bottom:8px;"></textarea>
@@ -742,6 +759,14 @@
             document.getElementById("go-panel-close").addEventListener("click", toggleCart);
             document.getElementById("go-overlay").addEventListener("click", toggleCart);
             document.getElementById("go-submit").addEventListener("click", placeOrder);
+
+            window.setOrderType = function(type) {
+                orderType = type;
+                document.querySelectorAll(".go-panel .go-cat").forEach(b => {
+                    b.classList.toggle("active", b.textContent.includes(type === 'Parcel' ? 'Takeaway' : 'Delivery'));
+                });
+                document.getElementById("delivery-info").style.display = type === 'Delivery' ? 'block' : 'none';
+            };
         }
 
         function renderItems(category) {
@@ -857,8 +882,9 @@
                 let customerName = document.getElementById("go-cust-name").value;
                 let customerPhone = document.getElementById("go-cust-phone").value;
                 let notes = document.getElementById("go-notes").value;
+                let deliveryAddr = document.getElementById("go-delivery-addr")?.value;
                 let branchSelect = document.getElementById("go-branch");
-                let branch = branchSelect ? branchSelect.value : null;
+                let branch = branchParam || (branchSelect ? branchSelect.value : null);
 
                 if (!customerPhone) {
                     frappe.msgprint("Please enter your mobile number.");
@@ -867,8 +893,15 @@
                     return;
                 }
 
-                if (!table && !branch && branchSelect && branchSelect.options.length > 1) {
+                if (!table && !branch) {
                     frappe.msgprint("Please select a branch to place your order.");
+                    btn.disabled = false;
+                    btn.textContent = "✅ Place Order";
+                    return;
+                }
+
+                if (orderType === 'Delivery' && !deliveryAddr) {
+                    frappe.msgprint("Please enter your delivery address.");
                     btn.disabled = false;
                     btn.textContent = "✅ Place Order";
                     return;
@@ -883,6 +916,7 @@
                         customer_phone: customerPhone,
                         notes: notes,
                         branch: branch || "",
+                        delivery_address: orderType === 'Delivery' ? deliveryAddr : "",
                     },
                     callback: function (r) {
                         if (r.message) {
