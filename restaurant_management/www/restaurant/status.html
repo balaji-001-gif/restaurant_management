@@ -391,6 +391,8 @@
                 "Served": "🍽️",
                 "Completed": "🎉",
                 "Cancelled": "❌",
+                "Out for Delivery": "🛵",
+                "Delivered": "🎁",
             };
             let statusMessages = {
                 "In Progress": "Your order has been received!",
@@ -412,14 +414,14 @@
 			</div>
 
 			<div class="os-status-big">
-				<div class="os-status-icon">${statusIcons[order.status] || (order.order_type === 'Delivery' ? '🛵' : '📋')}</div>
-				<div class="os-status-text">${order.status}</div>
-				<div class="os-status-sub">${statusMessages[order.status] || ""}</div>
+				<div class="os-status-icon">${statusIcons[order.display_status] || (order.order_type === 'Delivery' ? '🛵' : '📋')}</div>
+				<div class="os-status-text">${order.display_status}</div>
+				<div class="os-status-sub">${statusMessages[order.display_status] || ""}</div>
 			</div>
 		`;
 
             // Live Tracking Map
-            if (order.order_type === "Delivery" && order.status === "Out for Delivery") {
+            if (order.order_type === "Delivery" && order.display_status === "Out for Delivery") {
                 html += `
                 <div class="os-card">
                     <h3>📍 Live Tracking</h3>

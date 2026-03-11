@@ -180,6 +180,8 @@ def get_order_status(order_name):
 		"order": {
 			"name": order.name,
 			"status": order.status,
+			"delivery_status": order.delivery_status,
+			"display_status": display_status if order.order_type == "Delivery" else order.status,
 			"order_type": order.order_type,
 			"table": order.table,
 			"table_number": table_number,
