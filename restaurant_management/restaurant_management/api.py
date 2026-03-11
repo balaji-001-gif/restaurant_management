@@ -69,11 +69,16 @@ def get_tables(branch=None):
 
 
 @frappe.whitelist()
+def create_order(items, order_type, table=None, customer_name=None, notes=None, branch=None):
+	"""
+	Create a new order from POS.
+	Args:
+		items: JSON string of items or list
+		order_type: Dine In, Parcel, or Delivery
+		table: Table name (for Dine In)
 		customer_name: Optional customer name
 		notes: Optional special instructions
 		branch: Optional branch
-		delivery_address: Optional for home delivery
-		delivery_phone: Optional for home delivery
 	"""
 	if isinstance(items, str):
 		items = json.loads(items)
