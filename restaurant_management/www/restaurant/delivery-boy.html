@@ -8,6 +8,10 @@
         <h1>🛵 Delivery Hero</h1>
         <p>Location Sharing Panel</p>
     </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <div class="db-container">
         <div id="db-setup" class="db-card">
@@ -32,6 +36,15 @@
                 <div style="flex:1;background:#f8f9fa;padding:10px;border-radius:8px;text-align:center;">
                     <div style="font-size:12px;color:#888;">Longitude</div>
                     <div id="db-lon" style="font-weight:700;">--</div>
+                </div>
+            </div>
+
+            <div id="db-map" style="height:300px; border-radius:12px; margin-bottom:20px; border:1px solid #eee;"></div>
+
+            <div id="db-orders-list">
+                <h4 style="margin:0 0 10px;">📦 Active Deliveries</h4>
+                <div id="db-orders-items" style="display:flex; flex-direction:column; gap:10px;">
+                    <div style="color:#888; font-size:13px; text-align:center; padding:10px;">Loading assignments...</div>
                 </div>
             </div>
 
@@ -64,6 +77,9 @@
         let watchId = null;
         let dbId = null;
         let lastUpdate = 0;
+        let map = null;
+        let boyMarker = null;
+        let orderMarkers = {};
 
         document.getElementById('db-start-btn').addEventListener('click', startSharing);
         document.getElementById('db-stop-btn').addEventListener('click', stopSharing);
@@ -90,6 +106,10 @@
                 maximumAge: 5000,
                 timeout: 10000
             });
+
+            // Initial load of assignments
+            loadAssignments();
+            setInterval(loadAssignments, 15000);
         }
 
         function updatePosition(position) {
@@ -99,11 +119,70 @@
             document.getElementById('db-lat').textContent = lat.toFixed(5);
             document.getElementById('db-lon').textContent = lon.toFixed(5);
 
+            updateMap(lat, lon);
+
             const now = Date.now();
-            if (now - lastUpdate > 10000) { // Update every 10 seconds
+            if (now - lastUpdate > 10000) { 
                 lastUpdate = now;
                 sendLocation(lat, lon);
             }
+        }
+
+        function updateMap(lat, lon) {
+            if (!map) {
+                map = L.map('db-map').setView([lat, lon], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            }
+
+            if (boyMarker) {
+                boyMarker.setLatLng([lat, lon]);
+            } else {
+                boyMarker = L.marker([lat, lon], {
+                    icon: L.divIcon({html: '🛵', className: 'db-boy-icon', iconSize: [30, 30]})
+                }).addTo(map).bindPopup('You are here');
+            }
+        }
+
+        function loadAssignments() {
+            if (!dbId) return;
+            frappe.call({
+                method: "restaurant_management.restaurant_management.api_delivery.get_delivery_boy_assignments",
+                args: { delivery_boy: dbId },
+                callback: function(r) {
+                    if (r.message) renderAssignments(r.message);
+                }
+            });
+        }
+
+        function renderAssignments(orders) {
+            const container = document.getElementById('db-orders-items');
+            if (orders.length === 0) {
+                container.innerHTML = '<div style="color:#888; font-size:13px; text-align:center; padding:10px;">No active assignments.</div>';
+                return;
+            }
+
+            container.innerHTML = orders.map(ord => `
+                <div style="background:#f8f9fa; padding:12px; border-radius:10px; border-left:4px solid #F6B17A;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                        <span style="font-weight:700;">${ord.name}</span>
+                        <span style="font-size:12px; background:#eee; padding:2px 8px; border-radius:10px;">${ord.delivery_status}</span>
+                    </div>
+                    <div style="font-size:13px; color:#555; margin-bottom:8px;">📍 ${ord.delivery_address}</div>
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=${ord.delivery_latitude},${ord.delivery_longitude}" 
+                       target="_blank" style="font-size:12px; color:#3498db; text-decoration:none;">🌍 Open in Google Maps</a>
+                </div>
+            `).join("");
+
+            // Add order destinations to map
+            orders.forEach(ord => {
+                if (ord.delivery_latitude && ord.delivery_longitude) {
+                    if (!orderMarkers[ord.name]) {
+                        orderMarkers[ord.name] = L.marker([ord.delivery_latitude, ord.delivery_longitude], {
+                            icon: L.divIcon({html: '📍', className: 'db-dest-icon', iconSize: [20, 20]})
+                        }).addTo(map).bindPopup(`<b>${ord.name}</b><br>${ord.delivery_address}`);
+                    }
+                }
+            });
         }
 
         function sendLocation(lat, lon) {

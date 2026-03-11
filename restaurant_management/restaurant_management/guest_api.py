@@ -57,7 +57,8 @@ def get_guest_menu(table=None):
 
 
 @frappe.whitelist(allow_guest=True)
-def place_guest_order(items, table=None, customer_name=None, customer_phone=None, notes=None, branch=None, delivery_address=None):
+def place_guest_order(items, table=None, customer_name=None, customer_phone=None, notes=None, branch=None, 
+					  delivery_address=None, delivery_latitude=None, delivery_longitude=None):
 	"""Place an order from the guest QR code page. No login required."""
 	if isinstance(items, str):
 		items = json.loads(items)
@@ -90,6 +91,8 @@ def place_guest_order(items, table=None, customer_name=None, customer_phone=None
 		"customer_phone": customer_phone,
 		"notes": notes,
 		"delivery_address": delivery_address,
+		"delivery_latitude": flt(delivery_latitude) if delivery_latitude else None,
+		"delivery_longitude": flt(delivery_longitude) if delivery_longitude else None,
 		"order_date": now_datetime(),
 	})
 
@@ -133,7 +136,8 @@ def get_order_status(order_name):
 		"Restaurant Order", order_name,
 		["name", "status", "order_type", "table", "total_amount",
 		 "total_qty", "order_date", "customer_name", "payment_status",
-		 "delivery_boy", "delivery_status", "delivery_address"],
+		 "delivery_boy", "delivery_status", "delivery_address",
+		 "delivery_latitude", "delivery_longitude"],
 		as_dict=True,
 	)
 
@@ -210,7 +214,12 @@ def get_order_status(order_name):
 			"delivery_boy": frappe.db.get_value("Restaurant Delivery Boy", order.delivery_boy, 
 				["last_latitude", "last_longitude", "last_location_update"], as_dict=True) if order.delivery_boy else None,
 			"branch": frappe.db.get_value("Restaurant Branch", order.branch, 
-				["latitude", "longitude"], as_dict=True) if order.branch else None
+				["latitude", "longitude"], as_dict=True) if order.branch else None,
+			"customer": {
+				"latitude": order.delivery_latitude,
+				"longitude": order.delivery_longitude,
+				"address": order.delivery_address
+			} if order.order_type == "Delivery" else None
 		},
 		"items": items,
 		"timeline": timeline,

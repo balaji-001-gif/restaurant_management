@@ -669,6 +669,14 @@
             </div>
 
             <div class="go-search-wrap">
+                <div class="go-form-group">
+                    <label>Delivery Address</label>
+                    <textarea id="go-delivery-addr" class="go-input" style="height:80px;" placeholder="Flat No, Building, Area..."></textarea>
+                    <button type="button" id="go-detect-loc" class="go-btn-small" style="margin-top:10px; background:var(--go-accent-dark); color:#fff; border:none; padding:8px 12px; border-radius:6px; font-size:12px; cursor:pointer;">
+                        📍 Detect My Current Location
+                    </button>
+                    <div id="go-loc-status" style="font-size:11px; margin-top:5px; color:var(--go-text2);"></div>
+                </div>
                 <div class="go-search-inner">
                     <span class="go-search-icon">🔍</span>
                     <input type="text" class="go-search" id="go-search" placeholder="Search dishes...">
@@ -767,6 +775,37 @@
                 });
                 document.getElementById("delivery-info").style.display = type === 'Delivery' ? 'block' : 'none';
             };
+
+            document.getElementById("go-branch")?.addEventListener("change", (e) => {
+                branchParam = e.target.value;
+                loadMenu();
+            });
+
+            document.getElementById("go-detect-loc")?.addEventListener("click", detectLocation);
+        }
+
+        let userLat = null, userLon = null;
+        function detectLocation() {
+            const btn = document.getElementById("go-detect-loc");
+            const status = document.getElementById("go-loc-status");
+            
+            if (!navigator.geolocation) {
+                status.textContent = "Geolocation is not supported by your browser.";
+                return;
+            }
+
+            btn.disabled = true;
+            status.textContent = "Detecting... Please allow location access.";
+
+            navigator.geolocation.getCurrentPosition((pos) => {
+                userLat = pos.coords.latitude;
+                userLon = pos.coords.longitude;
+                btn.textContent = "✅ Location Captured";
+                status.textContent = "Coordinates: " + userLat.toFixed(5) + ", " + userLon.toFixed(5);
+            }, (err) => {
+                btn.disabled = false;
+                status.textContent = "Error ❌: " + err.message;
+            });
         }
 
         function renderItems(category) {
@@ -917,6 +956,8 @@
                         notes: notes,
                         branch: branch || "",
                         delivery_address: orderType === 'Delivery' ? deliveryAddr : "",
+                        delivery_latitude: orderType === 'Delivery' ? userLat : "",
+                        delivery_longitude: orderType === 'Delivery' ? userLon : "",
                     },
                     callback: function (r) {
                         if (r.message) {

@@ -48,3 +48,23 @@ def get_delivery_location(order_name):
 		"branch": branch_data,
 		"order_name": order_name
 	}
+
+@frappe.whitelist(allow_guest=True)
+def get_delivery_boy_assignments(delivery_boy):
+	"""
+	Get list of active assignments for a delivery boy to show on their dashboard.
+	"""
+	if not delivery_boy:
+		return []
+		
+	orders = frappe.get_all("Restaurant Order", 
+		filters={
+			"delivery_boy": delivery_boy,
+			"delivery_status": ["in", ["Assigned", "Out for Delivery"]],
+			"status": ["not in", ["Completed", "Cancelled"]]
+		},
+		fields=["name", "delivery_status", "delivery_address", "delivery_latitude", "delivery_longitude", "total_amount", "customer_name"]
+	)
+	
+	return orders
+

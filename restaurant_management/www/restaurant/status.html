@@ -358,6 +358,7 @@
         let map = null;
         let dboyMarker = null;
         let branchMarker = null;
+        let customerMarker = null;
 
         loadStatus();
         // Auto-refresh every 8 seconds
@@ -538,18 +539,19 @@
 
             const dboyPos = [tracking.delivery_boy.last_latitude, tracking.delivery_boy.last_longitude];
             const branchPos = tracking.branch && tracking.branch.latitude ? [tracking.branch.latitude, tracking.branch.longitude] : null;
+            const customerPos = tracking.customer && tracking.customer.latitude ? [tracking.customer.latitude, tracking.customer.longitude] : null;
 
             setTimeout(() => {
                 const mapContainer = document.getElementById('os-map');
                 if (!mapContainer) return;
 
                 if (map) {
-                   // If map exists but container is replaced by innerHTML, we must re-init
                    if (map.getContainer() !== mapContainer) {
                        map.remove();
                        map = null;
                        dboyMarker = null;
                        branchMarker = null;
+                       customerMarker = null;
                    }
                 }
 
@@ -560,31 +562,57 @@
                     }).addTo(map);
                 }
 
-                // Update Delivery Boy Marker
+                // Delivery Boy Marker
                 if (dboyMarker) {
                     dboyMarker.setLatLng(dboyPos);
                 } else {
-                    dboyMarker = L.marker(dboyPos).addTo(map).bindPopup('Delivery Hero').openPopup();
+                    const boyIcon = L.divIcon({
+                        html: '<div style="font-size:30px;">🛵</div>',
+                        className: 'boy-icon',
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
+                    });
+                    dboyMarker = L.marker(dboyPos, {icon: boyIcon}).addTo(map).bindPopup('Delivery Hero');
                 }
 
-                // Update Branch Marker
+                // Branch Marker (Restaurant)
                 if (branchPos) {
                     if (branchMarker) {
                         branchMarker.setLatLng(branchPos);
                     } else {
-                        branchMarker = L.circleMarker(branchPos, {
-                            color: '#2D3250',
-                            fillColor: '#F6B17A',
-                            fillOpacity: 0.8,
-                            radius: 8
-                        }).addTo(map).bindPopup('Restaurant');
+                        const storeIcon = L.divIcon({
+                            html: '<div style="font-size:24px;">🏪</div>',
+                            className: 'store-icon',
+                            iconSize: [24, 24],
+                            iconAnchor: [12, 12]
+                        });
+                        branchMarker = L.marker(branchPos, {icon: storeIcon}).addTo(map).bindPopup('Restaurant');
                     }
                 }
 
-                // Auto-zoom to fit markers
-                if (branchPos) {
-                    const bounds = L.latLngBounds([dboyPos, branchPos]);
-                    map.fitBounds(bounds, { padding: [30, 30] });
+                // Customer Marker (Destination)
+                if (customerPos) {
+                    if (customerMarker) {
+                        customerMarker.setLatLng(customerPos);
+                    } else {
+                        const homeIcon = L.divIcon({
+                            html: '<div style="font-size:24px;">🏠</div>',
+                            className: 'home-icon',
+                            iconSize: [24, 24],
+                            iconAnchor: [12, 12]
+                        });
+                        customerMarker = L.marker(customerPos, {icon: homeIcon}).addTo(map).bindPopup('Delivery Address');
+                    }
+                }
+
+                // Fit bounds to show all active markers
+                let points = [dboyPos];
+                if (branchPos) points.push(branchPos);
+                if (customerPos) points.push(customerPos);
+                
+                if (points.length > 1) {
+                    const bounds = L.latLngBounds(points);
+                    map.fitBounds(bounds, { padding: [50, 50] });
                 } else {
                     map.panTo(dboyPos);
                 }

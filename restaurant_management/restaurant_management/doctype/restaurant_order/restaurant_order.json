@@ -21,6 +21,8 @@
         "column_break_delivery",
         "delivery_address",
         "delivery_phone",
+        "delivery_latitude",
+        "delivery_longitude",
         "section_break_items",
         "items",
         "section_break_totals",
@@ -146,6 +148,16 @@
             "fieldtype": "Data",
             "label": "Delivery Phone Number",
             "options": "Phone"
+        },
+        {
+            "fieldname": "delivery_latitude",
+            "fieldtype": "Float",
+            "label": "Delivery Latitude"
+        },
+        {
+            "fieldname": "delivery_longitude",
+            "fieldtype": "Float",
+            "label": "Delivery Longitude"
         },
         {
             "fieldname": "section_break_items",
