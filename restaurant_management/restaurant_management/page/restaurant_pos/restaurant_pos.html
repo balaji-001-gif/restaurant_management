@@ -33,10 +33,17 @@
 					<button class="btn btn-order-type" data-type="Parcel">
 						<i class="fa fa-shopping-bag"></i> Parcel
 					</button>
+					<button class="btn btn-order-type" data-type="Delivery">
+						<i class="fa fa-motorcycle"></i> Delivery
+					</button>
 				</div>
 				<select id="table-selector" class="form-control table-select">
 					<option value="">Select Table...</option>
 				</select>
+				<div id="delivery-info" style="display: none; gap: 10px; margin-left: 10px;">
+					<input type="text" id="delivery-address" class="form-control" placeholder="Delivery Address" style="width: 200px;">
+					<input type="text" id="delivery-phone" class="form-control" placeholder="Phone Number" style="width: 150px;">
+				</div>
 			</div>
 		</div>
 

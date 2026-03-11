@@ -110,7 +110,8 @@ def get_order_status(order_name):
 	order = frappe.db.get_value(
 		"Restaurant Order", order_name,
 		["name", "status", "order_type", "table", "total_amount",
-		 "total_qty", "order_date", "customer_name", "payment_status"],
+		 "total_qty", "order_date", "customer_name", "payment_status",
+		 "delivery_boy", "delivery_status", "delivery_address"],
 		as_dict=True,
 	)
 
@@ -152,8 +153,16 @@ def get_order_status(order_name):
 		}
 
 	# Status timeline
-	status_flow = ["In Progress", "Preparing", "Ready", "Served", "Completed"]
-	current_idx = status_flow.index(order.status) if order.status in status_flow else -1
+	if order.order_type == "Delivery":
+		status_flow = ["In Progress", "Preparing", "Ready", "Out for Delivery", "Delivered"]
+		# Map order.status if it's Completed to Delivered for the timeline
+		display_status = "Delivered" if order.status == "Completed" else (order.delivery_status or order.status)
+		current_status = display_status
+	else:
+		status_flow = ["In Progress", "Preparing", "Ready", "Served", "Completed"]
+		current_status = order.status
+
+	current_idx = status_flow.index(current_status) if current_status in status_flow else -1
 
 	timeline = []
 	for idx, s in enumerate(status_flow):
@@ -169,9 +178,11 @@ def get_order_status(order_name):
 			"table_number": table_number,
 			"total_amount": order.total_amount,
 			"total_qty": order.total_qty,
-			"order_date": str(order.order_date),
 			"customer_name": order.customer_name,
 			"payment_status": order.payment_status,
+			"delivery_boy": order.delivery_boy,
+			"delivery_status": order.delivery_status,
+			"delivery_address": order.delivery_address,
 		},
 		"items": items,
 		"timeline": timeline,

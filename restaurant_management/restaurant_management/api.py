@@ -69,15 +69,11 @@ def get_tables(branch=None):
 
 
 @frappe.whitelist()
-def create_order(items, order_type, table=None, customer_name=None, notes=None, branch=None):
-	"""Create a new restaurant order quickly from the POS page.
-
-	Args:
-		items: JSON string — list of {menu_item, quantity}
-		order_type: "Dine In" or "Parcel"
-		table: Restaurant Table name (for Dine In)
 		customer_name: Optional customer name
 		notes: Optional special instructions
+		branch: Optional branch
+		delivery_address: Optional for home delivery
+		delivery_phone: Optional for home delivery
 	"""
 	if isinstance(items, str):
 		items = json.loads(items)
@@ -85,7 +81,7 @@ def create_order(items, order_type, table=None, customer_name=None, notes=None, 
 	if not items:
 		frappe.throw(_("Please add at least one item to the order"))
 
-	order = frappe.get_doc({
+	order_data = {
 		"doctype": "Restaurant Order",
 		"order_type": order_type,
 		"table": table if order_type == "Dine In" else None,
@@ -93,7 +89,16 @@ def create_order(items, order_type, table=None, customer_name=None, notes=None, 
 		"customer_name": customer_name,
 		"notes": notes,
 		"order_date": now_datetime(),
-	})
+	}
+
+	if order_type == "Delivery":
+		order_data.update({
+			"delivery_address": frappe.form_dict.get("delivery_address"),
+			"delivery_phone": frappe.form_dict.get("delivery_phone"),
+			"delivery_status": "Pending"
+		})
+
+	order = frappe.get_doc(order_data)
 
 	for item in items:
 		menu_item = frappe.get_doc("Restaurant Menu Item", item.get("menu_item"))
@@ -146,6 +151,50 @@ def update_order_status(order_name, status):
 	}
 	label = status_labels.get(status, status)
 	return {"status": "success", "message": _("{0}: {1}").format(label, order_name)}
+
+
+@frappe.whitelist()
+def assign_delivery_boy(order_name, delivery_boy):
+	"""Assign a delivery boy to an order."""
+	order = frappe.get_doc("Restaurant Order", order_name)
+	order.delivery_boy = delivery_boy
+	order.delivery_status = "Assigned"
+	order.save(ignore_permissions=True)
+	
+	# Mark delivery boy as Busy
+	dboy = frappe.get_doc("Restaurant Delivery Boy", delivery_boy)
+	dboy.status = "Busy"
+	dboy.save(ignore_permissions=True)
+	
+	return {"status": "success", "message": _("Assigned {0} to order {1}").format(delivery_boy, order_name)}
+
+
+@frappe.whitelist()
+def get_available_delivery_boys(branch=None):
+	"""Get list of available delivery boys, optionally by branch."""
+	filters = {"status": "Available"}
+	if branch:
+		filters["branch"] = branch
+	
+	return frappe.get_all("Restaurant Delivery Boy", filters=filters, fields=["name", "full_name", "phone", "vehicle_number"])
+
+
+@frappe.whitelist()
+def update_delivery_status(order_name, status):
+	"""Update delivery status (Assigned, Out for Delivery, Delivered)."""
+	order = frappe.get_doc("Restaurant Order", order_name)
+	order.delivery_status = status
+	
+	if status == "Delivered":
+		# Automatically complete order if delivered
+		order.status = "Completed"
+		
+		# Free up delivery boy
+		if order.delivery_boy:
+			frappe.db.set_value("Restaurant Delivery Boy", order.delivery_boy, "status", "Available")
+			
+	order.save(ignore_permissions=True)
+	return {"status": "success", "message": _("Delivery {0}: {1}").format(status, order_name)}
 
 
 @frappe.whitelist()

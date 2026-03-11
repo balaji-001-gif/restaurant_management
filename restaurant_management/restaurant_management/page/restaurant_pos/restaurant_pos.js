@@ -90,11 +90,17 @@ class RestaurantPOS {
             $(e.currentTarget).addClass("active");
             this.order_type = $(e.currentTarget).data("type");
 
-            if (this.order_type === "Parcel") {
-                $("#table-selector").hide();
-                this.selected_table = null;
-            } else {
+            if (this.order_type === "Dine In") {
                 $("#table-selector").show();
+                $("#delivery-info").hide();
+            } else if (this.order_type === "Parcel") {
+                $("#table-selector").hide();
+                $("#delivery-info").hide();
+                this.selected_table = null;
+            } else if (this.order_type === "Delivery") {
+                $("#table-selector").hide();
+                $("#delivery-info").css("display", "flex");
+                this.selected_table = null;
             }
         });
 
@@ -148,7 +154,8 @@ class RestaurantPOS {
                 doctype: "Restaurant Order",
                 filters: filters,
                 fields: ["name", "order_type", "table", "status", "total_amount",
-                    "total_qty", "order_date", "customer_name", "payment_status"],
+                    "total_qty", "order_date", "customer_name", "payment_status",
+                    "delivery_boy", "delivery_status"],
                 order_by: "modified desc",
                 limit_page_length: 50,
             },
@@ -183,8 +190,12 @@ class RestaurantPOS {
             let table_info = "";
             if (order.order_type === "Dine In" && order.table) {
                 table_info = `<span class="ol-badge ol-table">🪑 ${order.table}</span>`;
-            } else {
+            } else if (order.order_type === "Parcel") {
                 table_info = `<span class="ol-badge ol-parcel">📦 Parcel</span>`;
+            } else if (order.order_type === "Delivery") {
+                let d_status = order.delivery_status || "Pending";
+                let dboy = order.delivery_boy ? ` · 🏍️ ${order.delivery_boy}` : "";
+                table_info = `<span class="ol-badge ol-delivery">🚚 Delivery (${d_status}${dboy})</span>`;
             }
 
             let status_colors = {
@@ -235,6 +246,10 @@ class RestaurantPOS {
                 this.show_payment_dialog(order_name);
             } else if (new_status === "PRINT_BILL") {
                 this.print_bill(order_name);
+            } else if (new_status === "ASSIGN_DELIVERY") {
+                this.show_delivery_assignment_dialog(order_name);
+            } else if (new_status.startsWith("DELIVERY_")) {
+                this.update_delivery_status(order_name, new_status.replace("DELIVERY_", ""));
             } else {
                 this.update_order_status(order_name, new_status);
             }
@@ -260,14 +275,33 @@ class RestaurantPOS {
 				</button>`;
                 break;
             case "Served":
-                btns = `<button class="ol-action-btn ol-btn-print" data-order="${order.name}" data-status="PRINT_BILL">
+                if (order.order_type === "Delivery") {
+                    if (!order.delivery_boy) {
+                        btns = `<button class="ol-action-btn ol-btn-delivery" data-order="${order.name}" data-status="ASSIGN_DELIVERY">
+                            🏍️ Assign Delivery
+                        </button>`;
+                    } else if (order.delivery_status === "Assigned") {
+                        btns = `<button class="ol-action-btn ol-btn-delivery" data-order="${order.name}" data-status="DELIVERY_Out for Delivery">
+                            🚚 Out for Delivery
+                        </button>`;
+                    } else if (order.delivery_status === "Out for Delivery") {
+                        btns = `<button class="ol-action-btn ol-btn-delivery" data-order="${order.name}" data-status="DELIVERY_Delivered">
+                            🏁 Mark Delivered
+                        </button>`;
+                    }
+                }
+
+                if (btns) btns += " ";
+
+                btns += `<button class="ol-action-btn ol-btn-print" data-order="${order.name}" data-status="PRINT_BILL">
 					🧾 Print Bill
 				</button>`;
+                
                 if (order.payment_status !== "Paid") {
                     btns += `<button class="ol-action-btn ol-btn-payment" data-order="${order.name}" data-status="PAYMENT">
 						💰 Collect Payment
 					</button>`;
-                } else {
+                } else if (order.status === "Served" && (order.order_type !== "Delivery" || order.delivery_status === "Delivered")) {
                     btns += `<button class="ol-action-btn ol-btn-complete" data-order="${order.name}" data-status="Completed">
 						✔️ Complete
 					</button>`;
@@ -278,6 +312,77 @@ class RestaurantPOS {
                 break;
         }
         return btns;
+    }
+
+    show_delivery_assignment_dialog(order_name) {
+        let branch = $("#branch-selector").val();
+        frappe.call({
+            method: "restaurant_management.restaurant_management.api.get_available_delivery_boys",
+            args: { branch: branch },
+            callback: (r) => {
+                if (r.message && r.message.length > 0) {
+                    let d = new frappe.ui.Dialog({
+                        title: __("Assign Delivery Boy — {0}", [order_name]),
+                        fields: [
+                            {
+                                label: __("Delivery Boy"),
+                                fieldname: "delivery_boy",
+                                fieldtype: "Link",
+                                options: "Restaurant Delivery Boy",
+                                get_query: () => {
+                                    return {
+                                        filters: {
+                                            status: "Available",
+                                            branch: branch || ""
+                                        }
+                                    };
+                                },
+                                reqd: 1,
+                            },
+                        ],
+                        primary_action_label: __("Assign"),
+                        primary_action: (values) => {
+                            frappe.call({
+                                method: "restaurant_management.restaurant_management.api.assign_delivery_boy",
+                                args: {
+                                    order_name: order_name,
+                                    delivery_boy: values.delivery_boy,
+                                },
+                                callback: (res) => {
+                                    if (res.message && res.message.status === "success") {
+                                        frappe.show_alert({
+                                            message: res.message.message,
+                                            indicator: "green",
+                                        });
+                                        d.hide();
+                                        this.load_orders();
+                                    }
+                                },
+                            });
+                        },
+                    });
+                    d.show();
+                } else {
+                    frappe.msgprint(__("No delivery boys available right now."));
+                }
+            }
+        });
+    }
+
+    update_delivery_status(order_name, status) {
+        frappe.call({
+            method: "restaurant_management.restaurant_management.api.update_delivery_status",
+            args: { order_name: order_name, status: status },
+            callback: (r) => {
+                if (r.message && r.message.status === "success") {
+                    frappe.show_alert({
+                        message: r.message.message,
+                        indicator: "green",
+                    });
+                    this.load_orders();
+                }
+            },
+        });
     }
 
     update_order_status(order_name, status) {
@@ -630,6 +735,8 @@ class RestaurantPOS {
                 order_type: this.order_type,
                 table: this.selected_table || "",
                 branch: branch,
+                delivery_address: $("#delivery-address").val(),
+                delivery_phone: $("#delivery-phone").val()
             },
             callback: (r) => {
                 if (r.message) {

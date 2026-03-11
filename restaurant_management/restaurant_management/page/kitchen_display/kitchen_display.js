@@ -131,8 +131,10 @@ class KitchenDisplay {
             let table_badge = "";
             if (order.order_type === "Dine In" && order.table_number) {
                 table_badge = `<span class="kds-table-badge dine-in">🪑 Table ${order.table_number}</span>`;
-            } else {
+            } else if (order.order_type === "Parcel") {
                 table_badge = `<span class="kds-table-badge parcel">📦 PARCEL</span>`;
+            } else if (order.order_type === "Delivery") {
+                table_badge = `<span class="kds-table-badge delivery">🚚 DELIVERY</span>`;
             }
 
             // Status badge

@@ -214,6 +214,11 @@
     color: #F6B17A;
 }
 
+.kds-table-badge.delivery {
+    background: rgba(0, 188, 212, 0.15);
+    color: #00BCD4;
+}
+
 /* ===== Order Timer ===== */
 .kds-order-meta {
     display: flex;
