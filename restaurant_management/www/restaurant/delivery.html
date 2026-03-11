@@ -1,0 +1,145 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Delivery Boy Panel{% endblock %}
+
+{% block page_content %}
+<div id="delivery-boy-app">
+    <div class="db-header">
+        <h1>🛵 Delivery Hero</h1>
+        <p>Location Sharing Panel</p>
+    </div>
+
+    <div class="db-container">
+        <div id="db-setup" class="db-card">
+            <h3>Start Your Shift</h3>
+            <p style="color:#666;font-size:14px;margin-bottom:20px;">Enter your ID to start sharing your live location with customers.</p>
+            <input type="text" id="db-id-input" class="db-input" placeholder="Enter Delivery Boy ID (e.g., DBOY-001)">
+            <button id="db-start-btn" class="db-btn">🚀 Start Sharing Location</button>
+        </div>
+
+        <div id="db-active" class="db-card" style="display:none;">
+            <div class="db-status">
+                <div class="db-pulse"></div>
+                <span>Live Sharing Active</span>
+            </div>
+            <p id="db-info" style="font-weight:600;margin-bottom:15px;"></p>
+            
+            <div id="db-stats" style="display:flex;gap:10px;margin-bottom:20px;">
+                <div style="flex:1;background:#f8f9fa;padding:10px;border-radius:8px;text-align:center;">
+                    <div style="font-size:12px;color:#888;">Latitude</div>
+                    <div id="db-lat" style="font-weight:700;">--</div>
+                </div>
+                <div style="flex:1;background:#f8f9fa;padding:10px;border-radius:8px;text-align:center;">
+                    <div style="font-size:12px;color:#888;">Longitude</div>
+                    <div id="db-lon" style="font-weight:700;">--</div>
+                </div>
+            </div>
+
+            <button id="db-stop-btn" class="db-btn db-btn-danger">停止 Sharing</button>
+        </div>
+
+        <div id="db-log" style="margin-top:20px;font-size:11px;color:#999;font-family:monospace;max-height:100px;overflow-y:auto;padding:10px;background:#eee;border-radius:8px;">
+            Waiting to start...
+        </div>
+    </div>
+</div>
+
+<style>
+    #delivery-boy-app { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #fdfdfd; min-height: 80vh; }
+    .db-header { background: #2D3250; color: #fff; padding: 40px 20px; text-align: center; border-radius: 0 0 30px 30px; }
+    .db-header h1 { margin: 0; font-size: 24px; }
+    .db-container { padding: 20px; margin-top: -30px; }
+    .db-card { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
+    .db-input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 20px; font-size: 16px; outline: none; }
+    .db-input:focus { border-color: #F6B17A; }
+    .db-btn { width: 100%; padding: 14px; background: #F6B17A; color: #fff; border: none; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; }
+    .db-btn-danger { background: #ff4d4d; margin-top: 10px; }
+    .db-status { display: flex; align-items: center; gap: 10px; color: #2ecc71; font-weight: 700; margin-bottom: 20px; justify-content: center; }
+    .db-pulse { width: 12px; height: 12px; background: #2ecc71; border-radius: 50%; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } }
+</style>
+
+<script>
+    frappe.ready(function() {
+        let watchId = null;
+        let dbId = null;
+        let lastUpdate = 0;
+
+        document.getElementById('db-start-btn').addEventListener('click', startSharing);
+        document.getElementById('db-stop-btn').addEventListener('click', stopSharing);
+
+        function startSharing() {
+            dbId = document.getElementById('db-id-input').value.trim();
+            if (!dbId) {
+                alert("Please enter your Delivery Boy ID");
+                return;
+            }
+
+            if (!navigator.geolocation) {
+                alert("Geolocation is not supported by your browser.");
+                return;
+            }
+
+            document.getElementById('db-setup').style.display = 'none';
+            document.getElementById('db-active').style.display = 'block';
+            document.getElementById('db-info').textContent = "Sharing as: " + dbId;
+            log("Attempting to get location...");
+
+            watchId = navigator.geolocation.watchPosition(updatePosition, handleError, {
+                enableHighAccuracy: true,
+                maximumAge: 5000,
+                timeout: 10000
+            });
+        }
+
+        function updatePosition(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            
+            document.getElementById('db-lat').textContent = lat.toFixed(5);
+            document.getElementById('db-lon').textContent = lon.toFixed(5);
+
+            const now = Date.now();
+            if (now - lastUpdate > 10000) { // Update every 10 seconds
+                lastUpdate = now;
+                sendLocation(lat, lon);
+            }
+        }
+
+        function sendLocation(lat, lon) {
+            log("Sending update: " + lat.toFixed(4) + ", " + lon.toFixed(4));
+            frappe.call({
+                method: "restaurant_management.restaurant_management.api_delivery.update_delivery_boy_location",
+                args: {
+                    delivery_boy: dbId,
+                    latitude: lat,
+                    longitude: lon
+                },
+                callback: function(r) {
+                    log("Update synced ✅");
+                }
+            });
+        }
+
+        function stopSharing() {
+            if (watchId) navigator.geolocation.clearWatch(watchId);
+            document.getElementById('db-setup').style.display = 'block';
+            document.getElementById('db-active').style.display = 'none';
+            log("Stopped.");
+        }
+
+        function handleError(error) {
+            log("Error ❌: " + error.message);
+            if (error.code === 1) {
+                alert("Please enable Location Access to share your delivery status.");
+            }
+        }
+
+        function log(msg) {
+            const logEl = document.getElementById('db-log');
+            const time = new Date().toLocaleTimeString();
+            logEl.innerHTML = `[${time}] ${msg}<br>` + logEl.innerHTML;
+        }
+    });
+</script>
+{% endblock %}

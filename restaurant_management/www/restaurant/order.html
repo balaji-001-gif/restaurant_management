@@ -920,7 +920,26 @@
                     },
                     callback: function (r) {
                         if (r.message) {
-                            window.location.href = `/restaurant/status?order=${r.message.order_name}`;
+                            if (r.message.upi_link) {
+                                document.getElementById("go-panel").innerHTML = `
+                                    <div style="text-align:center;padding:20px;">
+                                        <div style="font-size:40px;margin-bottom:15px;">🔗</div>
+                                        <h3 style="color:#fff;font-weight:800;margin-bottom:10px;">Order Placed!</h3>
+                                        <p style="color:var(--go-text2);font-size:14px;margin-bottom:20px;">
+                                            Please pay <strong>${r.message.currency_symbol}${parseFloat(r.message.total_amount).toFixed(2)}</strong> to confirm your order.
+                                        </p>
+                                        <a href="${r.message.upi_link}" class="go-submit" style="display:block;text-decoration:none;background:var(--go-green);color:#1A1A24;">
+                                            📱 Pay with UPI
+                                        </a>
+                                        <button onclick="window.location.href='/restaurant/status?order=${r.message.order_name}'" 
+                                                style="background:none;border:none;color:var(--go-text2);margin-top:15px;cursor:pointer;font-size:13px;text-decoration:underline;">
+                                            I'll pay later (Track Order)
+                                        </button>
+                                    </div>
+                                `;
+                            } else {
+                                window.location.href = `/restaurant/status?order=${r.message.order_name}`;
+                            }
                         }
                     },
                     error: function () { btn.disabled = false; btn.textContent = "✅ Place Order"; }

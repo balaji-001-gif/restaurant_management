@@ -425,9 +425,9 @@
                 html += `
                 <div class="os-card">
                     <h3>📍 Live Tracking</h3>
-                    <div id="os-map"></div>
+                    <div id="os-map" style="height: 300px; background: #eee; border-radius: 12px; margin-bottom: 15px;"></div>
                     <div class="dboy-card">
-                        <div class="dboy-avatar"><i class="fa fa-motorcycle"></i></div>
+                        <div class="dboy-avatar">🛵</div>
                         <div class="dboy-info">
                             <div class="dboy-name">${order.delivery_boy || 'Delivery Hero'}</div>
                             <div class="dboy-phone">On his way to you!</div>
@@ -520,10 +520,15 @@
             document.getElementById("order-status-app").innerHTML = html;
 
             // Initialize/Update Map
-            if (order.order_type === "Delivery" && order.status === "Out for Delivery") {
+            if (order.order_type === "Delivery" && order.display_status === "Out for Delivery") {
                 initTrackingMap(data);
             } else {
-                map = null; // Reset if not out for delivery
+                if (map) {
+                    map.remove();
+                    map = null;
+                }
+                dboyMarker = null;
+                branchMarker = null;
             }
         }
 
@@ -535,6 +540,19 @@
             const branchPos = tracking.branch && tracking.branch.latitude ? [tracking.branch.latitude, tracking.branch.longitude] : null;
 
             setTimeout(() => {
+                const mapContainer = document.getElementById('os-map');
+                if (!mapContainer) return;
+
+                if (map) {
+                   // If map exists but container is replaced by innerHTML, we must re-init
+                   if (map.getContainer() !== mapContainer) {
+                       map.remove();
+                       map = null;
+                       dboyMarker = null;
+                       branchMarker = null;
+                   }
+                }
+
                 if (!map) {
                     map = L.map('os-map').setView(dboyPos, 15);
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

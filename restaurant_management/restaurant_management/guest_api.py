@@ -104,10 +104,25 @@ def place_guest_order(items, table=None, customer_name=None, customer_phone=None
 
 	order.insert(ignore_permissions=True)
 
+	# Get UPI info for immediate payment
+	settings = frappe.get_single("Restaurant Settings")
+	upi_id = settings.upi_id
+	upi_link = None
+	if upi_id:
+		restaurant_name = settings.restaurant_name or "Restaurant"
+		upi_link = "upi://pay?pa={upi_id}&pn={name}&am={amount}&tn={note}&cu=INR".format(
+			upi_id=upi_id,
+			name=(settings.upi_merchant_name or restaurant_name).replace(" ", "%20"),
+			amount=order.total_amount,
+			note="Order%20{0}".format(order.name),
+		)
+
 	return {
 		"order_name": order.name,
 		"total_amount": order.total_amount,
 		"status": "In Progress",
+		"upi_link": upi_link,
+		"currency_symbol": settings.default_currency_symbol or "₹",
 	}
 
 
