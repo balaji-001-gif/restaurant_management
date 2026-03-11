@@ -7,6 +7,7 @@
         "branch_name",
         "address",
         "ordering_url",
+        "qr_code_display",
         "latitude",
         "longitude"
     ],
@@ -29,6 +30,11 @@
             "fieldtype": "Data",
             "label": "Ordering URL",
             "read_only": 1
+        },
+        {
+            "fieldname": "qr_code_display",
+            "fieldtype": "HTML",
+            "label": "QR Code"
         },
         {
             "fieldname": "latitude",

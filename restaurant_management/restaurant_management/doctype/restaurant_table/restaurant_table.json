@@ -13,6 +13,7 @@
         "seating_capacity",
         "current_order",
         "qr_ordering_url",
+        "qr_code_display",
         "section_break_1",
         "amended_from"
     ],
@@ -66,6 +67,11 @@
             "fieldtype": "Data",
             "label": "QR Ordering URL",
             "read_only": 1
+        },
+        {
+            "fieldname": "qr_code_display",
+            "fieldtype": "HTML",
+            "label": "QR Code"
         },
         {
             "fieldname": "section_break_1",
