@@ -12,6 +12,7 @@
         "column_break_1",
         "seating_capacity",
         "current_order",
+        "qr_ordering_url",
         "section_break_1",
         "amended_from"
     ],
@@ -58,6 +59,12 @@
             "fieldtype": "Link",
             "label": "Current Order",
             "options": "Restaurant Order",
+            "read_only": 1
+        },
+        {
+            "fieldname": "qr_ordering_url",
+            "fieldtype": "Data",
+            "label": "QR Ordering URL",
             "read_only": 1
         },
         {
