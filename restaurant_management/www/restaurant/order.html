@@ -800,8 +800,32 @@
             navigator.geolocation.getCurrentPosition((pos) => {
                 userLat = pos.coords.latitude;
                 userLon = pos.coords.longitude;
-                btn.textContent = "✅ Location Captured";
-                status.textContent = "Coordinates: " + userLat.toFixed(5) + ", " + userLon.toFixed(5);
+                btn.textContent = "✅ Coordinates Captured";
+                status.textContent = "Fetching Address...";
+
+                // Reverse Geocoding via Nominatim (OpenStreetMap)
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${userLat}&lon=${userLon}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.display_name) {
+                            const addrField = document.getElementById("go-delivery-addr");
+                            if (addrField) {
+                                addrField.value = data.display_name;
+                                status.textContent = "✅ Address Auto-filled. You can edit it if needed.";
+                            }
+                        } else {
+                            status.textContent = "Coordinates: " + userLat.toFixed(5) + ", " + userLon.toFixed(5) + " (Address not found)";
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Geocoding error:", err);
+                        status.textContent = "Coordinates: " + userLat.toFixed(5) + ", " + userLon.toFixed(5) + " (Network error fetching address)";
+                    })
+                    .finally(() => {
+                        btn.disabled = false;
+                        btn.textContent = "📍 Re-detect Location";
+                    });
+
             }, (err) => {
                 btn.disabled = false;
                 status.textContent = "Error ❌: " + err.message;

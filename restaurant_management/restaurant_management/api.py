@@ -69,7 +69,8 @@ def get_tables(branch=None):
 
 
 @frappe.whitelist()
-def create_order(items, order_type, table=None, customer_name=None, notes=None, branch=None):
+def create_order(items, order_type, table=None, customer_name=None, notes=None, branch=None, 
+				 delivery_address=None, delivery_phone=None, delivery_latitude=None, delivery_longitude=None):
 	"""
 	Create a new order from POS.
 	Args:
@@ -98,8 +99,10 @@ def create_order(items, order_type, table=None, customer_name=None, notes=None, 
 
 	if order_type == "Delivery":
 		order_data.update({
-			"delivery_address": frappe.form_dict.get("delivery_address"),
-			"delivery_phone": frappe.form_dict.get("delivery_phone"),
+			"delivery_address": delivery_address,
+			"delivery_phone": delivery_phone,
+			"delivery_latitude": flt(delivery_latitude) if delivery_latitude else None,
+			"delivery_longitude": flt(delivery_longitude) if delivery_longitude else None,
 			"delivery_status": "Pending"
 		})
 

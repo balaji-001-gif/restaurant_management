@@ -129,6 +129,49 @@ class RestaurantPOS {
         $("#btn-save-order").on("click", () => {
             this.place_order();
         });
+
+        // Detect POS Location
+        $("#btn-detect-pos-loc").on("click", () => {
+            this.detect_pos_location();
+        });
+    }
+
+    detect_pos_location() {
+        if (!navigator.geolocation) {
+            frappe.msgprint(__("Geolocation is not supported by your browser."));
+            return;
+        }
+
+        const $btn = $("#btn-detect-pos-loc");
+        const $addrField = $("#delivery-address");
+        
+        $btn.prop("disabled", true).find("i").addClass("fa-spin");
+        
+        navigator.geolocation.getCurrentPosition((pos) => {
+            this.pos_lat = pos.coords.latitude;
+            this.pos_lon = pos.coords.longitude;
+
+            // Reverse Geocoding via Nominatim
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${this.pos_lat}&lon=${this.pos_lon}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.display_name) {
+                        $addrField.val(data.display_name);
+                        frappe.show_alert({ message: __("Address auto-filled from location"), indicator: "green" });
+                    }
+                })
+                .catch(err => {
+                    console.error("Geocoding error:", err);
+                    frappe.show_alert({ message: __("Could not fetch address, but coordinates captured."), indicator: "orange" });
+                })
+                .finally(() => {
+                    $btn.prop("disabled", false).find("i").removeClass("fa-spin");
+                });
+
+        }, (err) => {
+            $btn.prop("disabled", false).find("i").removeClass("fa-spin");
+            frappe.msgprint(__("Error detecting location: {0}", [err.message]));
+        });
     }
 
     // ============================
@@ -736,7 +779,9 @@ class RestaurantPOS {
                 table: this.selected_table || "",
                 branch: branch,
                 delivery_address: $("#delivery-address").val(),
-                delivery_phone: $("#delivery-phone").val()
+                delivery_phone: $("#delivery-phone").val(),
+                delivery_latitude: this.order_type === 'Delivery' ? this.pos_lat : null,
+                delivery_longitude: this.order_type === 'Delivery' ? this.pos_lon : null
             },
             callback: (r) => {
                 if (r.message) {
