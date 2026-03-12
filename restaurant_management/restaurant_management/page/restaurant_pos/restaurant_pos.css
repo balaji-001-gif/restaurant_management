@@ -6,10 +6,10 @@
 	justify-content: space-between;
 	align-items: center;
 	padding: 15px 20px;
-	background: linear-gradient(135deg, #2D3250, #424769);
+	background: linear-gradient(135deg, #204d7a, #2a6399);
 	border-radius: 12px;
 	margin-bottom: 20px;
-	box-shadow: 0 4px 15px rgba(45, 50, 80, 0.3);
+	box-shadow: 0 4px 15px rgba(32, 77, 122, 0.3);
 }
 
 .pos-title {
@@ -44,9 +44,9 @@
 }
 
 .btn-order-type.active {
-	background: #F6B17A;
-	color: #2D3250;
-	box-shadow: 0 2px 8px rgba(246, 177, 122, 0.4);
+	background: #ffffff;
+	color: #204d7a;
+	box-shadow: 0 2px 8px rgba(32, 77, 122, 0.3);
 }
 
 .table-select {
@@ -63,7 +63,7 @@
 	border-radius: 8px;
 	border: 2px solid #eee;
 	background: #fff;
-	color: #2D3250;
+	color: #204d7a;
 	padding: 8px 12px;
 	font-weight: 500;
 	cursor: pointer;
@@ -71,12 +71,12 @@
 }
 
 .branch-select:focus {
-	border-color: #F6B17A;
+	border-color: #204d7a;
 	outline: none;
 }
 
 .table-select option {
-	background: #2D3250;
+	background: #204d7a;
 	color: #fff;
 }
 
@@ -111,8 +111,8 @@
 }
 
 .menu-search input:focus {
-	border-color: #F6B17A;
-	box-shadow: 0 0 0 3px rgba(246, 177, 122, 0.15);
+	border-color: #204d7a;
+	box-shadow: 0 0 0 3px rgba(32, 77, 122, 0.15);
 }
 
 .menu-categories {
@@ -146,13 +146,13 @@
 }
 
 .btn-category:hover {
-	border-color: #F6B17A;
-	color: #E8985E;
+	border-color: #204d7a;
+	color: #1a3d60;
 }
 
 .btn-category.active {
-	background: #2D3250;
-	border-color: #2D3250;
+	background: #204d7a;
+	border-color: #204d7a;
 	color: #fff;
 }
 
@@ -187,7 +187,7 @@
 }
 
 .menu-item-card:hover {
-	border-color: #F6B17A;
+	border-color: #204d7a;
 	transform: translateY(-3px);
 	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
@@ -237,7 +237,7 @@
 .item-price {
 	font-weight: 700;
 	font-size: 16px;
-	color: #2D3250;
+	color: #204d7a;
 }
 
 .btn-add-item {
@@ -247,8 +247,8 @@
 	width: 32px;
 	height: 32px;
 	border-radius: 50%;
-	background: #F6B17A;
-	color: #2D3250;
+	background: #204d7a;
+	color: #fff;
 	border: none;
 	display: flex;
 	align-items: center;
@@ -259,7 +259,7 @@
 }
 
 .btn-add-item:hover {
-	background: #E8985E;
+	background: #1a3d60;
 	transform: scale(1.1);
 }
 
@@ -285,7 +285,7 @@
 .order-header h4 {
 	margin: 0;
 	font-weight: 700;
-	color: #2D3250;
+	color: #204d7a;
 }
 
 .order-items {
@@ -349,8 +349,8 @@
 }
 
 .btn-qty:hover {
-	border-color: #F6B17A;
-	background: #FFF3E8;
+	border-color: #204d7a;
+	background: #e8f0f7;
 }
 
 .qty-value {
@@ -361,7 +361,7 @@
 
 .order-item-amount {
 	font-weight: 700;
-	color: #2D3250;
+	color: #204d7a;
 	min-width: 70px;
 	text-align: right;
 }
@@ -404,7 +404,7 @@
 .total-amount {
 	font-size: 24px;
 	font-weight: 800;
-	color: #2D3250;
+	color: #204d7a;
 }
 
 .order-actions {
@@ -414,9 +414,9 @@
 
 .order-actions .btn-primary {
 	flex: 1;
-	background: linear-gradient(135deg, #F6B17A, #E8985E);
+	background: linear-gradient(135deg, #204d7a, #1a3d60);
 	border: none;
-	color: #2D3250;
+	color: #ffffff;
 	font-weight: 700;
 	border-radius: 10px;
 	padding: 10px;
@@ -426,7 +426,7 @@
 
 .order-actions .btn-primary:hover {
 	transform: translateY(-2px);
-	box-shadow: 0 6px 20px rgba(246, 177, 122, 0.4);
+	box-shadow: 0 6px 20px rgba(32, 77, 122, 0.4);
 }
 
 .order-actions .btn-danger {
@@ -441,7 +441,7 @@
 
 .section-title {
 	font-weight: 700;
-	color: #2D3250;
+	color: #204d7a;
 	margin-bottom: 15px;
 }
 
@@ -482,7 +482,7 @@
 .table-number {
 	font-weight: 700;
 	font-size: 16px;
-	color: #2D3250;
+	color: #204d7a;
 }
 
 .table-status {
@@ -528,7 +528,7 @@
 
 .table-order-total {
 	font-weight: 700;
-	color: #2D3250;
+	color: #204d7a;
 	font-size: 16px;
 }
 
@@ -552,7 +552,7 @@
 }
 
 .btn-view-order {
-	background: #2D3250;
+	background: #204d7a;
 	color: #fff;
 	border: none;
 }
@@ -626,14 +626,14 @@
 }
 
 .pos-tab:hover {
-	color: #2D3250;
+	color: #204d7a;
 	background: #fafafa;
 }
 
 .pos-tab.active {
-	color: #2D3250;
-	border-bottom-color: #F6B17A;
-	background: #FFF8F0;
+	color: #204d7a;
+	border-bottom-color: #204d7a;
+	background: #e8f0f7;
 }
 
 .pos-tab i {
@@ -693,12 +693,12 @@
 }
 
 .orders-filter:hover {
-	border-color: #F6B17A;
+	border-color: #204d7a;
 }
 
 .orders-filter.active {
-	background: #2D3250;
-	border-color: #2D3250;
+	background: #204d7a;
+	border-color: #204d7a;
 	color: #fff;
 }
 
@@ -752,7 +752,7 @@
 .ol-name {
 	font-weight: 700;
 	font-size: 14px;
-	color: #2D3250;
+	color: #204d7a;
 	margin-bottom: 4px;
 }
 
@@ -812,7 +812,7 @@
 .ol-amount {
 	font-weight: 800;
 	font-size: 15px;
-	color: #2D3250;
+	color: #204d7a;
 }
 
 .ol-paid {

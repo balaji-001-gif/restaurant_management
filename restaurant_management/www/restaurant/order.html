@@ -16,17 +16,18 @@
 
 <style>
     :root {
-        --go-bg: #0F0F14;
-        --go-surface: #1A1A24;
-        --go-surface2: #23232F;
-        --go-border: rgba(255, 255, 255, 0.06);
-        --go-text: #EAEAF0;
-        --go-text2: #9B9BAF;
-        --go-accent: #F6B17A;
-        --go-accent2: #E8985E;
-        --go-green: #4ADE80;
-        --go-red: #F87171;
-        --go-glass: rgba(255, 255, 255, 0.04);
+        --go-bg: #f3f3f3;
+        --go-surface: #ffffff;
+        --go-surface2: #e8ecf0;
+        --go-border: rgba(32, 77, 122, 0.1);
+        --go-text: #1a2a3a;
+        --go-text2: #6b7d8e;
+        --go-accent: #204d7a;
+        --go-accent2: #1a3d60;
+        --go-accent-dark: #163350;
+        --go-green: #2e7d32;
+        --go-red: #c62828;
+        --go-glass: rgba(32, 77, 122, 0.05);
         --go-radius: 16px;
         --go-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
@@ -38,7 +39,7 @@
     /* ===== HERO HEADER ===== */
     .go-hero {
         position: relative;
-        background: linear-gradient(145deg, #1C1C2E 0%, #2D1F3D 50%, #1A1A24 100%);
+        background: linear-gradient(145deg, #204d7a 0%, #2a6399 50%, #163350 100%);
         padding: 32px 24px 28px;
         margin: -20px -15px 0;
         overflow: hidden;
@@ -51,7 +52,7 @@
         right: -40px;
         width: 200px;
         height: 200px;
-        background: radial-gradient(circle, rgba(246, 177, 122, 0.15) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, transparent 70%);
         border-radius: 50%;
     }
 
@@ -62,7 +63,7 @@
         left: -60px;
         width: 250px;
         height: 250px;
-        background: radial-gradient(circle, rgba(147, 130, 220, 0.1) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(42, 99, 153, 0.15) 0%, transparent 70%);
         border-radius: 50%;
     }
 
@@ -105,9 +106,9 @@
     }
 
     .go-badge-table {
-        background: rgba(246, 177, 122, 0.15);
-        color: var(--go-accent);
-        border: 1px solid rgba(246, 177, 122, 0.25);
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.25);
     }
 
     .go-badge-add {
@@ -190,14 +191,14 @@
     }
 
     .go-cat:hover {
-        border-color: rgba(246, 177, 122, 0.3);
+        border-color: var(--go-accent);
         color: var(--go-text);
     }
 
     .go-cat.active {
         background: linear-gradient(135deg, var(--go-accent), var(--go-accent2));
         border-color: transparent;
-        color: #1A1A24;
+        color: #ffffff;
     }
 
     /* ===== MENU GRID ===== */
@@ -219,9 +220,9 @@
     }
 
     .go-card:hover {
-        border-color: rgba(246, 177, 122, 0.3);
+        border-color: var(--go-accent);
         transform: translateY(-3px);
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 8px 25px rgba(32, 77, 122, 0.15);
     }
 
     .go-card:active {
@@ -231,7 +232,7 @@
     .go-card-img {
         width: 100%;
         height: 110px;
-        background: linear-gradient(135deg, var(--go-surface2), #2A2A3A);
+        background: linear-gradient(135deg, #e0e7ee, #d0d8e0);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -283,7 +284,7 @@
         height: 32px;
         border-radius: 10px;
         background: linear-gradient(135deg, var(--go-accent), var(--go-accent2));
-        color: #1A1A24;
+        color: #ffffff;
         border: none;
         font-weight: 900;
         font-size: 18px;
@@ -302,15 +303,15 @@
     /* Pulse animation on add */
     @keyframes cardPulse {
         0% {
-            box-shadow: 0 0 0 0 rgba(246, 177, 122, 0.4);
+            box-shadow: 0 0 0 0 rgba(32, 77, 122, 0.4);
         }
 
         70% {
-            box-shadow: 0 0 0 10px rgba(246, 177, 122, 0);
+            box-shadow: 0 0 0 10px rgba(32, 77, 122, 0);
         }
 
         100% {
-            box-shadow: 0 0 0 0 rgba(246, 177, 122, 0);
+            box-shadow: 0 0 0 0 rgba(32, 77, 122, 0);
         }
     }
 
@@ -324,7 +325,7 @@
         bottom: 0;
         left: 0;
         right: 0;
-        background: linear-gradient(135deg, #1C1C2E, #2D1F3D);
+        background: linear-gradient(135deg, #204d7a, #163350);
         backdrop-filter: blur(20px);
         padding: 14px 20px;
         display: flex;
@@ -355,7 +356,7 @@
     .go-bar-btn {
         padding: 10px 28px;
         background: linear-gradient(135deg, var(--go-accent), var(--go-accent2));
-        color: #1A1A24;
+        color: #ffffff;
         border: none;
         border-radius: 12px;
         font-weight: 800;
@@ -408,7 +409,7 @@
     .go-panel-handle {
         width: 40px;
         height: 4px;
-        background: rgba(255, 255, 255, 0.15);
+        background: rgba(32, 77, 122, 0.12);
         border-radius: 2px;
         margin: 0 auto 18px;
     }
@@ -480,7 +481,7 @@
     }
 
     .go-ci-btn:hover {
-        background: rgba(246, 177, 122, 0.15);
+        background: rgba(32, 77, 122, 0.1);
     }
 
     .go-ci-val {
@@ -544,7 +545,7 @@
         width: 100%;
         padding: 16px;
         background: linear-gradient(135deg, var(--go-accent), var(--go-accent2));
-        color: #1A1A24;
+        color: #ffffff;
         border: none;
         border-radius: 14px;
         font-weight: 900;
@@ -557,7 +558,7 @@
 
     .go-submit:hover {
         transform: translateY(-1px);
-        box-shadow: 0 8px 25px rgba(246, 177, 122, 0.3);
+        box-shadow: 0 8px 25px rgba(32, 77, 122, 0.3);
     }
 
     .go-submit:disabled {
