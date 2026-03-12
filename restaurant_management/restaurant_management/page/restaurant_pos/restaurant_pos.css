@@ -58,6 +58,23 @@
 	padding: 8px 12px;
 }
 
+.branch-select {
+	min-width: 180px;
+	border-radius: 8px;
+	border: 2px solid #eee;
+	background: #fff;
+	color: #2D3250;
+	padding: 8px 12px;
+	font-weight: 500;
+	cursor: pointer;
+	box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.branch-select:focus {
+	border-color: #F6B17A;
+	outline: none;
+}
+
 .table-select option {
 	background: #2D3250;
 	color: #fff;
@@ -200,7 +217,9 @@
 	margin-bottom: 4px;
 	display: -webkit-box;
 	-webkit-line-clamp: 2;
+	line-clamp: 2;
 	-webkit-box-orient: vertical;
+	box-orient: vertical;
 	overflow: hidden;
 	height: 40px;
 	/* Force consistent height for name block */
