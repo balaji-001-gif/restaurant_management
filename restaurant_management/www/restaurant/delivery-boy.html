@@ -1,224 +1,522 @@
-{% extends "templates/web.html" %}
+<!DOCTYPE html>
 
-{% block title %}Delivery Boy Panel{% endblock %}
-
-{% block page_content %}
-<div id="delivery-boy-app">
-    <div class="db-header">
-        <h1>🛵 Delivery Hero</h1>
-        <p>Location Sharing Panel</p>
-    </div>
-</div>
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-    <div class="db-container">
-        <div id="db-setup" class="db-card">
-            <h3>Start Your Shift</h3>
-            <p style="color:#666;font-size:14px;margin-bottom:20px;">Enter your ID to start sharing your live location with customers.</p>
-            <input type="text" id="db-id-input" class="db-input" placeholder="Enter Delivery Boy ID (e.g., DBOY-001)">
-            <button id="db-start-btn" class="db-btn">🚀 Start Sharing Location</button>
-        </div>
-
-        <div id="db-active" class="db-card" style="display:none;">
-            <div class="db-status">
-                <div class="db-pulse"></div>
-                <span>Live Sharing Active</span>
-            </div>
-            <p id="db-info" style="font-weight:600;margin-bottom:15px;"></p>
-            
-            <div id="db-stats" style="display:flex;gap:10px;margin-bottom:20px;">
-                <div style="flex:1;background:#f8f9fa;padding:10px;border-radius:8px;text-align:center;">
-                    <div style="font-size:12px;color:#888;">Latitude</div>
-                    <div id="db-lat" style="font-weight:700;">--</div>
-                </div>
-                <div style="flex:1;background:#f8f9fa;padding:10px;border-radius:8px;text-align:center;">
-                    <div style="font-size:12px;color:#888;">Longitude</div>
-                    <div id="db-lon" style="font-weight:700;">--</div>
-                </div>
-            </div>
-
-            <div id="db-map" style="height:300px; border-radius:12px; margin-bottom:20px; border:1px solid #eee;"></div>
-
-            <div id="db-orders-list">
-                <h4 style="margin:0 0 10px;">📦 Active Deliveries</h4>
-                <div id="db-orders-items" style="display:flex; flex-direction:column; gap:10px;">
-                    <div style="color:#888; font-size:13px; text-align:center; padding:10px;">Loading assignments...</div>
-                </div>
-            </div>
-
-            <button id="db-stop-btn" class="db-btn db-btn-danger">停止 Sharing</button>
-        </div>
-
-        <div id="db-log" style="margin-top:20px;font-size:11px;color:#999;font-family:monospace;max-height:100px;overflow-y:auto;padding:10px;background:#eee;border-radius:8px;">
-            Waiting to start...
-        </div>
-    </div>
-</div>
-
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Luminal Logistics | Courier Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "inverse-primary": "#006c5c",
+                        "tertiary-dim": "#874cff",
+                        "on-background": "#f1f3fc",
+                        "secondary-fixed-dim": "#b3c1ff",
+                        "on-tertiary-container": "#f8f1ff",
+                        "surface-container": "#151a21",
+                        "primary-fixed": "#12f8d7",
+                        "tertiary-fixed-dim": "#b190ff",
+                        "surface-dim": "#0a0e14",
+                        "secondary-fixed": "#c5d0ff",
+                        "on-tertiary-fixed-variant": "#4700a7",
+                        "outline-variant": "#44484f",
+                        "secondary-dim": "#3367ff",
+                        "background": "#0a0e14",
+                        "primary-dim": "#00e8c9",
+                        "on-secondary-fixed": "#002a88",
+                        "on-error": "#490006",
+                        "on-primary-fixed-variant": "#006455",
+                        "on-primary-container": "#00574a",
+                        "secondary": "#7c98ff",
+                        "primary": "#73ffe3",
+                        "error-container": "#9f0519",
+                        "tertiary-container": "#7000ff",
+                        "inverse-on-surface": "#51555d",
+                        "on-surface": "#f1f3fc",
+                        "surface-container-low": "#0f141a",
+                        "on-secondary": "#00195b",
+                        "inverse-surface": "#f8f9ff",
+                        "error-dim": "#d7383b",
+                        "primary-container": "#00f5d4",
+                        "tertiary": "#ac89ff",
+                        "surface-bright": "#262c36",
+                        "outline": "#72757d",
+                        "on-secondary-fixed-variant": "#0042c9",
+                        "secondary-container": "#004ee8",
+                        "surface-container-highest": "#20262f",
+                        "on-secondary-container": "#f8f7ff",
+                        "surface-variant": "#20262f",
+                        "primary-fixed-dim": "#00e8c9",
+                        "surface": "#0a0e14",
+                        "tertiary-fixed": "#bda1ff",
+                        "on-tertiary-fixed": "#1f0052",
+                        "on-primary": "#006152",
+                        "error": "#ff716c",
+                        "on-primary-fixed": "#00443a",
+                        "surface-container-high": "#1b2028",
+                        "surface-container-lowest": "#000000",
+                        "on-tertiary": "#290067",
+                        "on-error-container": "#ffa8a3",
+                        "surface-tint": "#73ffe3",
+                        "on-surface-variant": "#a8abb3"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Manrope"],
+                        "label": ["Space Grotesk"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                },
+            },
+        }
+    </script>
 <style>
-    #delivery-boy-app { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #fdfdfd; min-height: 80vh; }
-    .db-header { background: #2D3250; color: #fff; padding: 40px 20px; text-align: center; border-radius: 0 0 30px 30px; }
-    .db-header h1 { margin: 0; font-size: 24px; }
-    .db-container { padding: 20px; margin-top: -30px; }
-    .db-card { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
-    .db-input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 20px; font-size: 16px; outline: none; }
-    .db-input:focus { border-color: #F6B17A; }
-    .db-btn { width: 100%; padding: 14px; background: #F6B17A; color: #fff; border: none; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; }
-    .db-btn-danger { background: #ff4d4d; margin-top: 10px; }
-    .db-status { display: flex; align-items: center; gap: 10px; color: #2ecc71; font-weight: 700; margin-bottom: 20px; justify-content: center; }
-    .db-pulse { width: 12px; height: 12px; background: #2ecc71; border-radius: 50%; animation: pulse 1.5s infinite; }
-    @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } }
-</style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(27, 32, 40, 0.4);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(115, 255, 227, 0.05);
+        }
+        .aurora-gradient {
+            background: linear-gradient(135deg, #73ffe3 0%, #7c98ff 100%);
+        }
+        .pulse-glow {
+            box-shadow: 0 0 15px rgba(115, 255, 227, 0.4);
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.33); opacity: 0.8; }
+            80%, 100% { opacity: 0; }
+        }
+        .animate-pulse-ring::before {
+            content: '';
+            position: absolute;
+            left: -100%; top: -100%; right: -100%; bottom: -100%;
+            border-radius: 50%;
+            background-color: #73ffe3;
+            animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(115, 255, 227, 0.1); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(115, 255, 227, 0.3); }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary/30 selection:text-primary overflow-hidden">
+
+<!-- Sidebar Navigation -->
+<aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 bg-[#0f141a] py-8 z-50 shadow-[40px_0_40px_-10px_rgba(124,152,255,0.06)]">
+    <div class="px-6 mb-10">
+        <h1 class="text-[#73ffe3] font-black font-headline tracking-tighter text-2xl uppercase">Luminal</h1>
+    </div>
+    <div class="flex items-center gap-4 px-6 mb-8">
+        <div class="relative w-12 h-12 rounded-full overflow-hidden border border-primary/20">
+            <img alt="Rider photo" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUflMNk358uvk4ZoLpoHlSR8JtdyX7azNL075wxOh1E7dAWPHguCSi4KpCJwrsmkSVCQxjXZNdfqTI6ICYTWD-HqDkZkHmKbylVG2SYekVCzPYhqK2XVxPwgyC_TFqb2yJ6cmAcwyV_3OXpJBCF-u35Eg0rrwiMCVZNoB9UVkSHQ_WcpzeomRL3TTVEE0_oGU1T6dwPK5rugDw6rpJTzFlDQTPHreEPyTyd3MiM_Y2Yx53z7CGbj2biyOXtnILVDDtGak8VcU3oDqO"/>
+        </div>
+        <div>
+            <p class="font-headline font-bold text-sm text-on-surface">Kaelen Vos</p>
+            <p class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Elite Courier #882</p>
+        </div>
+    </div>
+    <nav class="flex-1 space-y-1">
+        <a class="flex items-center gap-4 bg-gradient-to-r from-[#73ffe3]/10 to-transparent text-[#73ffe3] border-l-4 border-[#73ffe3] px-6 py-3 transition-all duration-200" href="#">
+            <span class="material-symbols-outlined text-xl">grid_view</span>
+            <span class="font-label uppercase tracking-widest text-[0.6875rem] font-bold">Dashboard</span>
+        </a>
+        <a class="flex items-center gap-4 text-[#f1f3fc]/50 px-6 py-3 hover:bg-[#1b2028] hover:text-[#73ffe3] transition-all duration-200" href="#">
+            <span class="material-symbols-outlined text-xl">local_shipping</span>
+            <span class="font-label uppercase tracking-widest text-[0.6875rem]">Active Tasks</span>
+        </a>
+        <a class="flex items-center gap-4 text-[#f1f3fc]/50 px-6 py-3 hover:bg-[#1b2028] hover:text-[#73ffe3] transition-all duration-200" href="#">
+            <span class="material-symbols-outlined text-xl">history</span>
+            <span class="font-label uppercase tracking-widest text-[0.6875rem]">History</span>
+        </a>
+        <a class="flex items-center gap-4 text-[#f1f3fc]/50 px-6 py-3 hover:bg-[#1b2028] hover:text-[#73ffe3] transition-all duration-200" href="#">
+            <span class="material-symbols-outlined text-xl">payments</span>
+            <span class="font-label uppercase tracking-widest text-[0.6875rem]">Earnings</span>
+        </a>
+    </nav>
+    <div class="mt-auto px-6 space-y-4">
+        <button class="w-full aurora-gradient text-on-primary font-headline font-bold py-3 rounded-md uppercase tracking-widest text-xs active:scale-95 transition-all" id="db-start-btn">
+            Go Online
+        </button>
+        <div class="flex flex-col gap-2 pt-6 border-t border-outline-variant/10">
+            <a class="flex items-center gap-4 text-[#f1f3fc]/50 py-1 hover:text-[#73ffe3] transition-all" href="#">
+                <span class="material-symbols-outlined text-lg">settings</span>
+                <span class="font-label uppercase tracking-widest text-[0.625rem]">Settings</span>
+            </a>
+            <a class="flex items-center gap-4 text-[#f1f3fc]/50 py-1 hover:text-[#73ffe3] transition-all" href="#">
+                <span class="material-symbols-outlined text-lg">help_center</span>
+                <span class="font-label uppercase tracking-widest text-[0.625rem]">Support</span>
+            </a>
+        </div>
+    </div>
+</aside>
+
+<!-- Main Content Canvas -->
+<main class="md:ml-64 flex flex-col h-screen relative bg-background">
+    <!-- Top App Bar -->
+    <header class="flex justify-between items-center px-8 py-6 w-full bg-[#0a0e14] z-40">
+        <div class="flex items-center gap-4">
+            <h2 class="font-headline text-2xl font-bold tracking-tighter text-[#73ffe3]">Rider Core <span class="text-on-surface-variant font-light text-lg ml-2">/ Live Console</span></h2>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="hidden lg:flex items-center gap-8 mr-8">
+                <span class="font-label text-xs uppercase tracking-widest text-[#73ffe3] border-b-2 border-[#73ffe3] pb-1 cursor-pointer">Live Operations</span>
+                <span class="font-label text-xs uppercase tracking-widest text-[#f1f3fc]/60 hover:text-[#73ffe3] transition-all cursor-pointer">Zone Map</span>
+                <span class="font-label text-xs uppercase tracking-widest text-[#f1f3fc]/60 hover:text-[#73ffe3] transition-all cursor-pointer">System Status</span>
+            </div>
+            <div class="flex gap-4 items-center">
+                <span class="material-symbols-outlined text-on-surface-variant hover:text-[#73ffe3] transition-all cursor-pointer">notifications</span>
+                <span class="material-symbols-outlined text-on-surface-variant hover:text-[#73ffe3] transition-all cursor-pointer">sensors</span>
+                <span class="material-symbols-outlined text-on-surface-variant hover:text-[#73ffe3] transition-all cursor-pointer">battery_charging_full</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content Area: Bento Layout -->
+    <div class="flex-1 p-8 grid grid-cols-12 grid-rows-6 gap-6 overflow-hidden">
+
+        <!-- Left Column: Controls & Stats -->
+        <div class="col-span-12 lg:col-span-4 row-span-6 flex flex-col gap-6">
+
+            <!-- Shift Controller Card -->
+            <div class="glass-panel rounded-xl p-6 flex flex-col gap-6">
+                <div class="flex justify-between items-center">
+                    <span class="font-label text-[0.6875rem] uppercase tracking-widest text-primary/80">Initialization</span>
+                    <div class="hidden flex items-center gap-2" id="db-active">
+                        <div class="relative flex items-center justify-center w-2 h-2">
+                            <div class="absolute inline-flex h-full w-full rounded-full bg-primary opacity-75 animate-pulse"></div>
+                            <div class="relative inline-flex rounded-full h-2 w-2 bg-primary pulse-glow"></div>
+                        </div>
+                        <span class="text-[0.625rem] font-headline font-bold text-primary uppercase tracking-wider">Live Sharing Active</span>
+                    </div>
+                </div>
+
+                <!-- Init State -->
+                <div class="space-y-4" id="db-init-state">
+                    <div class="space-y-2">
+                        <label class="font-label text-[0.625rem] uppercase tracking-widest text-on-surface-variant ml-1">Rider ID / Shift Code</label>
+                        <input class="w-full bg-surface-container-highest border-none text-on-surface font-headline tracking-widest p-4 rounded-md focus:ring-1 focus:ring-primary/50 transition-all placeholder:text-on-surface-variant/30"
+                               id="db-id-input" placeholder="ENT-882-VX" type="text"/>
+                    </div>
+                    <button class="w-full aurora-gradient py-4 rounded-md text-on-primary font-headline font-black uppercase tracking-widest text-sm shadow-[0_10px_30px_-10px_rgba(115,255,227,0.3)] active:scale-95 transition-all"
+                            id="db-go-online-btn">
+                        Start Your Shift
+                    </button>
+                </div>
+
+                <!-- Live State -->
+                <div class="hidden space-y-4" id="db-live-state">
+                    <div class="bg-surface-container-lowest/50 rounded-lg p-4 flex items-center justify-between border border-outline-variant/10">
+                        <div>
+                            <p class="text-[0.625rem] font-label text-on-surface-variant uppercase tracking-widest">Rider ID</p>
+                            <p class="font-headline text-xl font-bold text-on-surface" id="db-live-id">—</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[0.625rem] font-label text-on-surface-variant uppercase tracking-widest">Status</p>
+                            <p class="font-headline text-xs text-primary">LIVE ●</p>
+                        </div>
+                    </div>
+                    <button class="w-full bg-error-container/20 border border-error/30 py-3 rounded-md text-error font-headline font-bold uppercase tracking-widest text-xs hover:bg-error-container/40 transition-all"
+                            id="db-stop-btn">
+                        Stop Sharing
+                    </button>
+                </div>
+            </div>
+
+            <!-- Telemetry Stats Card -->
+            <div class="glass-panel rounded-xl p-6 flex flex-col gap-4">
+                <span class="font-label text-[0.6875rem] uppercase tracking-widest text-on-surface-variant">Telemetry Flux</span>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-surface-container/50 p-4 rounded-lg">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-secondary text-sm">explore</span>
+                            <span class="text-[0.625rem] font-label uppercase tracking-widest text-on-surface-variant">Latitude</span>
+                        </div>
+                        <p class="font-headline text-lg font-medium tabular-nums text-on-surface" id="db-lat">--.------</p>
+                    </div>
+                    <div class="bg-surface-container/50 p-4 rounded-lg">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-secondary text-sm">location_on</span>
+                            <span class="text-[0.625rem] font-label uppercase tracking-widest text-on-surface-variant">Longitude</span>
+                        </div>
+                        <p class="font-headline text-lg font-medium tabular-nums text-on-surface" id="db-lng">--.------</p>
+                    </div>
+                </div>
+                <div class="mt-2 space-y-3">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-body text-on-surface-variant">Signal Strength</span>
+                        <span class="font-headline text-primary" id="db-signal">--</span>
+                    </div>
+                    <div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+                        <div class="bg-primary h-full shadow-[0_0_8px_rgba(115,255,227,0.5)] transition-all" id="db-signal-bar" style="width:0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Deliveries List -->
+            <div class="glass-panel rounded-xl flex-1 flex flex-col overflow-hidden">
+                <div class="px-6 py-4 border-b border-outline-variant/10 flex justify-between items-center">
+                    <span class="font-label text-[0.6875rem] uppercase tracking-widest text-on-surface-variant">Active Manifest</span>
+                    <span class="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-tighter" id="db-order-count">Loading</span>
+                </div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-2" id="db-deliveries-list">
+                    <div class="p-4 text-center text-on-surface-variant text-xs font-label uppercase tracking-widest">
+                        Start shift to see assignments
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Map Visualizer -->
+        <div class="col-span-12 lg:col-span-8 row-span-6 relative rounded-xl overflow-hidden glass-panel">
+            <!-- Overlays -->
+            <div class="absolute top-6 left-6 z-10 flex flex-col gap-4">
+                <div class="bg-surface-container-lowest/80 backdrop-blur-md px-4 py-2 rounded-lg border border-primary/20 flex items-center gap-3">
+                    <span class="material-symbols-outlined text-primary text-sm">radar</span>
+                    <p class="text-[10px] font-label uppercase tracking-widest font-bold text-primary" id="db-map-label">Awaiting Signal</p>
+                </div>
+            </div>
+            <div class="absolute top-6 right-6 z-10 flex gap-2">
+                <button class="bg-surface-container-highest/80 backdrop-blur-md p-2 rounded-lg text-on-surface hover:text-primary transition-all">
+                    <span class="material-symbols-outlined">layers</span>
+                </button>
+                <button class="bg-surface-container-highest/80 backdrop-blur-md p-2 rounded-lg text-on-surface hover:text-primary transition-all" id="db-center-btn">
+                    <span class="material-symbols-outlined">my_location</span>
+                </button>
+            </div>
+
+            <!-- Leaflet Map -->
+            <div class="w-full h-full" id="db-map"></div>
+
+            <!-- Bottom Bar -->
+            <div class="absolute bottom-6 left-6 right-6 z-10 flex items-end justify-between">
+                <div class="glass-panel p-4 rounded-lg flex items-center gap-8">
+                    <div>
+                        <p class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">Deliveries Today</p>
+                        <p class="font-headline text-2xl font-black text-[#73ffe3]" id="db-delivered-count">0</p>
+                    </div>
+                    <div class="w-px h-10 bg-outline-variant/30"></div>
+                    <div>
+                        <p class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">Active Orders</p>
+                        <p class="font-headline text-2xl font-black text-secondary" id="db-active-count">0</p>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-2 items-end">
+                    <div class="bg-surface-container-highest/90 backdrop-blur-md px-4 py-2 rounded-lg border border-outline-variant/20">
+                        <p class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest text-right">Location</p>
+                        <p class="font-headline font-bold text-on-surface text-xs" id="db-location-status">OFFLINE</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Mobile Navigation -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container border-t border-outline-variant/10 px-8 py-3 flex justify-between items-center z-50">
+    <button class="flex flex-col items-center gap-1 text-primary">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+        <span class="text-[10px] font-label uppercase tracking-widest">Core</span>
+    </button>
+    <button class="flex flex-col items-center gap-1 text-on-surface-variant">
+        <span class="material-symbols-outlined">local_shipping</span>
+        <span class="text-[10px] font-label uppercase tracking-widest">Tasks</span>
+    </button>
+    <div class="absolute -top-6 left-1/2 -translate-x-1/2">
+        <button class="w-14 h-14 aurora-gradient rounded-full shadow-[0_0_20px_rgba(115,255,227,0.4)] flex items-center justify-center text-on-primary" id="db-fab-btn">
+            <span class="material-symbols-outlined text-3xl">power_settings_new</span>
+        </button>
+    </div>
+    <button class="flex flex-col items-center gap-1 text-on-surface-variant">
+        <span class="material-symbols-outlined">history</span>
+        <span class="text-[10px] font-label uppercase tracking-widest">Logs</span>
+    </button>
+    <button class="flex flex-col items-center gap-1 text-on-surface-variant">
+        <span class="material-symbols-outlined">account_circle</span>
+        <span class="text-[10px] font-label uppercase tracking-widest">Me</span>
+    </button>
+</nav>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
 <script>
-    frappe.ready(function() {
-        let watchId = null;
-        let dbId = null;
-        let lastUpdate = 0;
-        let map = null;
-        let boyMarker = null;
-        let orderMarkers = {};
+    let watchId = null, dbId = null, lastUpdate = 0;
+    let map = null, boyMarker = null, orderMarkers = {};
+    let deliveredCount = 0;
 
-        document.getElementById('db-start-btn').addEventListener('click', startSharing);
-        document.getElementById('db-stop-btn').addEventListener('click', stopSharing);
+    // ── Start Shift ──
+    document.getElementById('db-go-online-btn').addEventListener('click', startShift);
+    document.getElementById('db-stop-btn').addEventListener('click', stopShift);
+    document.getElementById('db-center-btn').addEventListener('click', () => { if (boyMarker) map.panTo(boyMarker.getLatLng()); });
 
-        function startSharing() {
-            dbId = document.getElementById('db-id-input').value.trim();
-            if (!dbId) {
-                alert("Please enter your Delivery Boy ID");
-                return;
-            }
+    function startShift() {
+        dbId = document.getElementById('db-id-input').value.trim();
+        if (!dbId) { alert("Please enter your Rider ID."); return; }
+        if (!navigator.geolocation) { alert("Geolocation not supported."); return; }
 
-            if (!navigator.geolocation) {
-                alert("Geolocation is not supported by your browser.");
-                return;
-            }
+        document.getElementById('db-init-state').classList.add('hidden');
+        document.getElementById('db-live-state').classList.remove('hidden');
+        document.getElementById('db-active').classList.remove('hidden');
+        document.getElementById('db-live-id').textContent = dbId;
+        document.getElementById('db-location-status').textContent = 'ACQUIRING';
+        document.getElementById('db-map-label').textContent = 'Scanning Live Position';
 
-            document.getElementById('db-setup').style.display = 'none';
-            document.getElementById('db-active').style.display = 'block';
-            document.getElementById('db-info').textContent = "Sharing as: " + dbId;
-            log("Attempting to get location...");
+        initMap();
 
-            watchId = navigator.geolocation.watchPosition(updatePosition, handleError, {
-                enableHighAccuracy: true,
-                maximumAge: 5000,
-                timeout: 10000
-            });
+        watchId = navigator.geolocation.watchPosition(onPosition, onError, {
+            enableHighAccuracy: true, maximumAge: 5000, timeout: 12000
+        });
 
-            // Initial load of assignments
-            loadAssignments();
-            setInterval(loadAssignments, 15000);
+        loadAssignments();
+        setInterval(loadAssignments, 15000);
+    }
+
+    function stopShift() {
+        if (watchId) navigator.geolocation.clearWatch(watchId);
+        document.getElementById('db-init-state').classList.remove('hidden');
+        document.getElementById('db-live-state').classList.add('hidden');
+        document.getElementById('db-active').classList.add('hidden');
+        document.getElementById('db-location-status').textContent = 'OFFLINE';
+        document.getElementById('db-map-label').textContent = 'Awaiting Signal';
+    }
+
+    function initMap() {
+        if (map) return;
+        map = L.map('db-map', { zoomControl: false }).setView([20.5937, 78.9629], 5);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap © CARTO'
+        }).addTo(map);
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+    }
+
+    function onPosition(pos) {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const acc = pos.coords.accuracy;
+
+        document.getElementById('db-lat').textContent = lat.toFixed(5);
+        document.getElementById('db-lng').textContent = lng.toFixed(5);
+        document.getElementById('db-location-status').textContent = 'LIVE';
+
+        const strength = Math.max(10, Math.min(100, Math.round(100 - (acc / 50))));
+        document.getElementById('db-signal').textContent = strength + '%';
+        document.getElementById('db-signal-bar').style.width = strength + '%';
+
+        if (!map) initMap();
+        const icon = L.divIcon({ html: '<div style="font-size:28px;filter:drop-shadow(0 0 8px #73ffe3);">🛵</div>', className: '', iconSize: [32, 32], iconAnchor: [16, 16] });
+        if (boyMarker) boyMarker.setLatLng([lat, lng]);
+        else { boyMarker = L.marker([lat, lng], { icon }).addTo(map).bindPopup('You are here'); map.setView([lat, lng], 15); }
+
+        const now = Date.now();
+        if (now - lastUpdate > 10000) { lastUpdate = now; pushLocation(lat, lng); }
+    }
+
+    function pushLocation(lat, lng) {
+        if (typeof frappe === 'undefined') return;
+        frappe.call({
+            method: "restaurant_management.restaurant_management.api_delivery.update_delivery_boy_location",
+            args: { delivery_boy: dbId, latitude: lat, longitude: lng }
+        });
+    }
+
+    function loadAssignments() {
+        if (!dbId) return;
+        if (typeof frappe === 'undefined') { renderOrders(demoOrders()); return; }
+        frappe.call({
+            method: "restaurant_management.restaurant_management.api_delivery.get_delivery_boy_assignments",
+            args: { delivery_boy: dbId },
+            callback: function(r) { renderOrders(r.message || []); },
+            error: function() { renderOrders(demoOrders()); }
+        });
+    }
+
+    function demoOrders() {
+        return [
+            { name: "RM-ORD-001", delivery_address: "MG Road, Bengaluru",      delivery_latitude: 12.9750, delivery_longitude: 77.6000, delivery_status: "Out for Delivery", total_amount: 450 },
+            { name: "RM-ORD-002", delivery_address: "Koramangala, Bengaluru",   delivery_latitude: 12.9279, delivery_longitude: 77.6271, delivery_status: "Assigned",         total_amount: 320 },
+        ];
+    }
+
+    function renderOrders(orders) {
+        document.getElementById('db-active-count').textContent = orders.length;
+        document.getElementById('db-delivered-count').textContent = deliveredCount;
+        document.getElementById('db-order-count').textContent = orders.length + ' Active';
+
+        const container = document.getElementById('db-deliveries-list');
+        if (orders.length === 0) {
+            container.innerHTML = '<div class="p-4 text-center text-on-surface-variant text-xs font-label uppercase tracking-widest">No active assignments</div>';
+            return;
         }
 
-        function updatePosition(position) {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-            
-            document.getElementById('db-lat').textContent = lat.toFixed(5);
-            document.getElementById('db-lon').textContent = lon.toFixed(5);
-
-            updateMap(lat, lon);
-
-            const now = Date.now();
-            if (now - lastUpdate > 10000) { 
-                lastUpdate = now;
-                sendLocation(lat, lon);
-            }
-        }
-
-        function updateMap(lat, lon) {
-            if (!map) {
-                map = L.map('db-map').setView([lat, lon], 15);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            }
-
-            if (boyMarker) {
-                boyMarker.setLatLng([lat, lon]);
-            } else {
-                boyMarker = L.marker([lat, lon], {
-                    icon: L.divIcon({html: '🛵', className: 'db-boy-icon', iconSize: [30, 30]})
-                }).addTo(map).bindPopup('You are here');
-            }
-        }
-
-        function loadAssignments() {
-            if (!dbId) return;
-            frappe.call({
-                method: "restaurant_management.restaurant_management.api_delivery.get_delivery_boy_assignments",
-                args: { delivery_boy: dbId },
-                callback: function(r) {
-                    if (r.message) renderAssignments(r.message);
-                }
-            });
-        }
-
-        function renderAssignments(orders) {
-            const container = document.getElementById('db-orders-items');
-            if (orders.length === 0) {
-                container.innerHTML = '<div style="color:#888; font-size:13px; text-align:center; padding:10px;">No active assignments.</div>';
-                return;
-            }
-
-            container.innerHTML = orders.map(ord => `
-                <div style="background:#f8f9fa; padding:12px; border-radius:10px; border-left:4px solid #F6B17A;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                        <span style="font-weight:700;">${ord.name}</span>
-                        <span style="font-size:12px; background:#eee; padding:2px 8px; border-radius:10px;">${ord.delivery_status}</span>
+        container.innerHTML = orders.map(ord => `
+        <div class="p-4 hover:bg-surface-container-highest/30 rounded-lg transition-all group">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded bg-secondary-container/20 flex items-center justify-center text-secondary shrink-0">
+                        <span class="material-symbols-outlined text-base">inventory_2</span>
                     </div>
-                    <div style="font-size:13px; color:#555; margin-bottom:8px;">📍 ${ord.delivery_address}</div>
-                    <a href="https://www.google.com/maps/dir/?api=1&destination=${ord.delivery_latitude},${ord.delivery_longitude}" 
-                       target="_blank" style="font-size:12px; color:#3498db; text-decoration:none;">🌍 Open in Google Maps</a>
+                    <div>
+                        <p class="font-headline font-bold text-sm">${ord.name}</p>
+                        <p class="text-[10px] text-on-surface-variant uppercase tracking-widest">${ord.delivery_status}</p>
+                    </div>
                 </div>
-            `).join("");
+                <span class="font-headline font-bold text-primary text-sm">₹${parseFloat(ord.total_amount||0).toFixed(0)}</span>
+            </div>
+            <p class="text-xs text-on-surface-variant mb-3 pl-12">📍 ${ord.delivery_address || '—'}</p>
+            <div class="flex gap-2 pl-12">
+                ${ord.delivery_latitude && ord.delivery_longitude
+                    ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${ord.delivery_latitude},${ord.delivery_longitude}" target="_blank"
+                          class="text-[10px] font-label uppercase tracking-widest text-secondary border border-secondary/30 px-3 py-1.5 rounded hover:bg-secondary/10 transition-all">Navigate</a>`
+                    : ''}
+                <button onclick="markDelivered('${ord.name}', ${ord.total_amount||0})"
+                        class="text-[10px] font-label uppercase tracking-widest text-primary border border-primary/30 px-3 py-1.5 rounded hover:bg-primary/10 transition-all">
+                    Mark Delivered
+                </button>
+            </div>
+        </div>`).join('');
 
-            // Add order destinations to map
+        // Plot on map
+        if (map) {
             orders.forEach(ord => {
-                if (ord.delivery_latitude && ord.delivery_longitude) {
-                    if (!orderMarkers[ord.name]) {
-                        orderMarkers[ord.name] = L.marker([ord.delivery_latitude, ord.delivery_longitude], {
-                            icon: L.divIcon({html: '📍', className: 'db-dest-icon', iconSize: [20, 20]})
-                        }).addTo(map).bindPopup(`<b>${ord.name}</b><br>${ord.delivery_address}`);
-                    }
+                if (ord.delivery_latitude && ord.delivery_longitude && !orderMarkers[ord.name]) {
+                    const icon = L.divIcon({ html: '<div style="font-size:20px;filter:drop-shadow(0 0 6px #7c98ff);">📍</div>', className: '', iconSize: [24, 24], iconAnchor: [12, 12] });
+                    orderMarkers[ord.name] = L.marker([ord.delivery_latitude, ord.delivery_longitude], { icon })
+                        .addTo(map).bindPopup(`<b>${ord.name}</b><br>${ord.delivery_address}`);
                 }
             });
         }
+    }
 
-        function sendLocation(lat, lon) {
-            log("Sending update: " + lat.toFixed(4) + ", " + lon.toFixed(4));
+    window.markDelivered = function(orderName, amount) {
+        if (!confirm("Mark " + orderName + " as delivered?")) return;
+        deliveredCount++;
+        document.getElementById('db-delivered-count').textContent = deliveredCount;
+        if (orderMarkers[orderName]) { map.removeLayer(orderMarkers[orderName]); delete orderMarkers[orderName]; }
+        if (typeof frappe !== 'undefined') {
             frappe.call({
-                method: "restaurant_management.restaurant_management.api_delivery.update_delivery_boy_location",
-                args: {
-                    delivery_boy: dbId,
-                    latitude: lat,
-                    longitude: lon
-                },
-                callback: function(r) {
-                    log("Update synced ✅");
-                }
+                method: "restaurant_management.restaurant_management.api_delivery.mark_order_delivered",
+                args: { order_name: orderName, delivery_boy: dbId },
+                callback: loadAssignments
             });
+        } else {
+            loadAssignments();
         }
+    };
 
-        function stopSharing() {
-            if (watchId) navigator.geolocation.clearWatch(watchId);
-            document.getElementById('db-setup').style.display = 'block';
-            document.getElementById('db-active').style.display = 'none';
-            log("Stopped.");
-        }
-
-        function handleError(error) {
-            log("Error ❌: " + error.message);
-            if (error.code === 1) {
-                alert("Please enable Location Access to share your delivery status.");
-            }
-        }
-
-        function log(msg) {
-            const logEl = document.getElementById('db-log');
-            const time = new Date().toLocaleTimeString();
-            logEl.innerHTML = `[${time}] ${msg}<br>` + logEl.innerHTML;
-        }
-    });
+    function onError(err) {
+        document.getElementById('db-location-status').textContent = 'ERROR';
+        if (err.code === 1) alert("Please allow location access.");
+    }
 </script>
-{% endblock %}
+</body></html>
