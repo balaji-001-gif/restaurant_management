@@ -7,10 +7,13 @@
     "engine": "InnoDB",
     "field_order": [
         "table_number",
+        "branch",
         "status",
         "column_break_1",
         "seating_capacity",
         "current_order",
+        "qr_ordering_url",
+        "qr_code_display",
         "section_break_1",
         "amended_from"
     ],
@@ -20,7 +23,14 @@
             "fieldtype": "Int",
             "label": "Table Number",
             "reqd": 1,
-            "unique": 1,
+            "in_list_view": 1,
+            "in_standard_filter": 1
+        },
+        {
+            "fieldname": "branch",
+            "fieldtype": "Link",
+            "label": "Branch",
+            "options": "Restaurant Branch",
             "in_list_view": 1,
             "in_standard_filter": 1
         },
@@ -51,6 +61,17 @@
             "label": "Current Order",
             "options": "Restaurant Order",
             "read_only": 1
+        },
+        {
+            "fieldname": "qr_ordering_url",
+            "fieldtype": "Data",
+            "label": "QR Ordering URL",
+            "read_only": 1
+        },
+        {
+            "fieldname": "qr_code_display",
+            "fieldtype": "HTML",
+            "label": "QR Code"
         },
         {
             "fieldname": "section_break_1",

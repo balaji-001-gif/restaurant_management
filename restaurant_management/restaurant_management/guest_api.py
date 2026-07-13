@@ -37,17 +37,28 @@ def get_guest_menu(table=None):
 		if table_doc:
 			table_info = table_doc
 
+	# Get branches for Parcel orders / selection
+	branches = []
+	try:
+		branches = frappe.get_all("Restaurant Branch", fields=["name", "branch_name"], order_by="branch_name asc")
+	except frappe.exceptions.DoesNotExistError:
+		pass
+	except Exception:
+		pass
+
 	return {
 		"restaurant_name": settings.restaurant_name,
 		"currency_symbol": settings.default_currency_symbol or "₹",
 		"address": settings.address,
 		"menu": grouped,
 		"table": table_info,
+		"branches": branches,
 	}
 
 
 @frappe.whitelist(allow_guest=True)
-def place_guest_order(items, table=None, customer_name=None, notes=None):
+def place_guest_order(items, table=None, customer_name=None, customer_phone=None, notes=None, branch=None, 
+					  delivery_address=None, delivery_latitude=None, delivery_longitude=None):
 	"""Place an order from the guest QR code page. No login required."""
 	if isinstance(items, str):
 		items = json.loads(items)
@@ -55,14 +66,33 @@ def place_guest_order(items, table=None, customer_name=None, notes=None):
 	if not items:
 		frappe.throw(_("Please add at least one item"))
 
-	order_type = "Dine In" if table else "Parcel"
+	# Determine order type
+	if table:
+		order_type = "Dine In"
+	elif delivery_address:
+		order_type = "Delivery"
+	else:
+		order_type = "Parcel"
+
+	# If table is given, fetch branch from it
+	final_branch = branch
+	if table:
+		try:
+			final_branch = frappe.db.get_value("Restaurant Table", table, "branch") or branch
+		except Exception:
+			pass
 
 	order = frappe.get_doc({
 		"doctype": "Restaurant Order",
 		"order_type": order_type,
 		"table": table if order_type == "Dine In" else None,
+		"branch": final_branch,
 		"customer_name": customer_name,
+		"customer_phone": customer_phone,
 		"notes": notes,
+		"delivery_address": delivery_address,
+		"delivery_latitude": flt(delivery_latitude) if delivery_latitude else None,
+		"delivery_longitude": flt(delivery_longitude) if delivery_longitude else None,
 		"order_date": now_datetime(),
 	})
 
@@ -77,10 +107,25 @@ def place_guest_order(items, table=None, customer_name=None, notes=None):
 
 	order.insert(ignore_permissions=True)
 
+	# Get UPI info for immediate payment
+	settings = frappe.get_single("Restaurant Settings")
+	upi_id = settings.upi_id
+	upi_link = None
+	if upi_id:
+		restaurant_name = settings.restaurant_name or "Restaurant"
+		upi_link = "upi://pay?pa={upi_id}&pn={name}&am={amount}&tn={note}&cu=INR".format(
+			upi_id=upi_id,
+			name=(settings.upi_merchant_name or restaurant_name).replace(" ", "%20"),
+			amount=order.total_amount,
+			note="Order%20{0}".format(order.name),
+		)
+
 	return {
 		"order_name": order.name,
 		"total_amount": order.total_amount,
 		"status": "In Progress",
+		"upi_link": upi_link,
+		"currency_symbol": settings.default_currency_symbol or "₹",
 	}
 
 
@@ -90,7 +135,9 @@ def get_order_status(order_name):
 	order = frappe.db.get_value(
 		"Restaurant Order", order_name,
 		["name", "status", "order_type", "table", "total_amount",
-		 "total_qty", "order_date", "customer_name", "payment_status"],
+		 "total_qty", "order_date", "customer_name", "payment_status",
+		 "delivery_boy", "delivery_status", "delivery_address",
+		 "delivery_latitude", "delivery_longitude"],
 		as_dict=True,
 	)
 
@@ -132,8 +179,16 @@ def get_order_status(order_name):
 		}
 
 	# Status timeline
-	status_flow = ["In Progress", "Preparing", "Ready", "Served", "Completed"]
-	current_idx = status_flow.index(order.status) if order.status in status_flow else -1
+	if order.order_type == "Delivery":
+		status_flow = ["In Progress", "Preparing", "Ready", "Out for Delivery", "Delivered"]
+		# Map order.status if it's Completed to Delivered for the timeline
+		display_status = "Delivered" if order.status == "Completed" else (order.delivery_status or order.status)
+		current_status = display_status
+	else:
+		status_flow = ["In Progress", "Preparing", "Ready", "Served", "Completed"]
+		current_status = order.status
+
+	current_idx = status_flow.index(current_status) if current_status in status_flow else -1
 
 	timeline = []
 	for idx, s in enumerate(status_flow):
@@ -144,14 +199,27 @@ def get_order_status(order_name):
 		"order": {
 			"name": order.name,
 			"status": order.status,
+			"delivery_status": order.delivery_status,
+			"display_status": display_status if order.order_type == "Delivery" else order.status,
 			"order_type": order.order_type,
 			"table": order.table,
 			"table_number": table_number,
 			"total_amount": order.total_amount,
 			"total_qty": order.total_qty,
-			"order_date": str(order.order_date),
-			"customer_name": order.customer_name,
-			"payment_status": order.payment_status,
+			"delivery_boy": order.delivery_boy,
+			"delivery_status": order.delivery_status,
+			"delivery_address": order.delivery_address,
+		},
+		"delivery_tracking": {
+			"delivery_boy": frappe.db.get_value("Restaurant Delivery Boy", order.delivery_boy, 
+				["last_latitude", "last_longitude", "last_location_update"], as_dict=True) if order.delivery_boy else None,
+			"branch": frappe.db.get_value("Restaurant Branch", order.branch, 
+				["latitude", "longitude"], as_dict=True) if order.branch else None,
+			"customer": {
+				"latitude": order.delivery_latitude,
+				"longitude": order.delivery_longitude,
+				"address": order.delivery_address
+			} if order.order_type == "Delivery" else None
 		},
 		"items": items,
 		"timeline": timeline,
@@ -245,8 +313,8 @@ def get_table_qr_data():
 # ===========================================================
 
 @frappe.whitelist(allow_guest=True)
-def get_available_slots(date, guests=2):
-	"""Get available time slots for a given date and guest count."""
+def get_available_slots(date, guests=2, branch=None):
+	"""Get available time slots for a given date, guest count, and optionally branch."""
 	guests = cint(guests) or 2
 
 	if str(date) < str(frappe.utils.today()):
@@ -269,9 +337,13 @@ def get_available_slots(date, guests=2):
 	]
 
 	# Get all tables that fit the guest count
+	table_filters = {"seating_capacity": [">=", guests]}
+	if branch:
+		table_filters["branch"] = branch
+
 	tables = frappe.get_all(
 		"Restaurant Table",
-		filters={"seating_capacity": [">=", guests]},
+		filters=table_filters,
 		fields=["name", "table_number", "seating_capacity"],
 		order_by="seating_capacity asc, table_number asc",
 	)
@@ -324,7 +396,7 @@ def get_available_slots(date, guests=2):
 
 
 @frappe.whitelist(allow_guest=True)
-def book_table(date, time_slot, guests, customer_name, phone, email=None, notes=None):
+def book_table(date, time_slot, guests, customer_name, phone, email=None, notes=None, branch=None):
 	"""Book a table — auto-assigns the best-fit available table."""
 	guests = cint(guests) or 2
 
@@ -332,10 +404,14 @@ def book_table(date, time_slot, guests, customer_name, phone, email=None, notes=
 		frappe.throw(_("Cannot book for past dates"))
 
 	# Find available tables for this slot
+	table_filters = {"seating_capacity": [">=", guests]}
+	if branch:
+		table_filters["branch"] = branch
+
 	tables = frappe.get_all(
 		"Restaurant Table",
-		filters={"seating_capacity": [">=", guests]},
-		fields=["name", "table_number", "seating_capacity"],
+		filters=table_filters,
+		fields=["name", "table_number", "seating_capacity", "branch"],
 		order_by="seating_capacity asc, table_number asc",
 	)
 
@@ -368,6 +444,7 @@ def book_table(date, time_slot, guests, customer_name, phone, email=None, notes=
 		"reservation_date": date,
 		"time_slot": time_slot,
 		"table": chosen.name,
+		"branch": chosen.get("branch") or branch,
 		"notes": notes,
 		"status": "Confirmed",
 	})

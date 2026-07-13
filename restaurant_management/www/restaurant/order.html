@@ -16,17 +16,18 @@
 
 <style>
     :root {
-        --go-bg: #0F0F14;
-        --go-surface: #1A1A24;
-        --go-surface2: #23232F;
-        --go-border: rgba(255, 255, 255, 0.06);
-        --go-text: #EAEAF0;
-        --go-text2: #9B9BAF;
-        --go-accent: #F6B17A;
-        --go-accent2: #E8985E;
-        --go-green: #4ADE80;
-        --go-red: #F87171;
-        --go-glass: rgba(255, 255, 255, 0.04);
+        --go-bg: #f3f3f3;
+        --go-surface: #ffffff;
+        --go-surface2: #e8ecf0;
+        --go-border: rgba(32, 77, 122, 0.1);
+        --go-text: #1a2a3a;
+        --go-text2: #6b7d8e;
+        --go-accent: #204d7a;
+        --go-accent2: #1a3d60;
+        --go-accent-dark: #163350;
+        --go-green: #2e7d32;
+        --go-red: #c62828;
+        --go-glass: rgba(32, 77, 122, 0.05);
         --go-radius: 16px;
         --go-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
@@ -38,7 +39,7 @@
     /* ===== HERO HEADER ===== */
     .go-hero {
         position: relative;
-        background: linear-gradient(145deg, #1C1C2E 0%, #2D1F3D 50%, #1A1A24 100%);
+        background: linear-gradient(145deg, #204d7a 0%, #2a6399 50%, #163350 100%);
         padding: 32px 24px 28px;
         margin: -20px -15px 0;
         overflow: hidden;
@@ -51,7 +52,7 @@
         right: -40px;
         width: 200px;
         height: 200px;
-        background: radial-gradient(circle, rgba(246, 177, 122, 0.15) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, transparent 70%);
         border-radius: 50%;
     }
 
@@ -62,7 +63,7 @@
         left: -60px;
         width: 250px;
         height: 250px;
-        background: radial-gradient(circle, rgba(147, 130, 220, 0.1) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(42, 99, 153, 0.15) 0%, transparent 70%);
         border-radius: 50%;
     }
 
@@ -105,9 +106,9 @@
     }
 
     .go-badge-table {
-        background: rgba(246, 177, 122, 0.15);
-        color: var(--go-accent);
-        border: 1px solid rgba(246, 177, 122, 0.25);
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.25);
     }
 
     .go-badge-add {
@@ -190,14 +191,14 @@
     }
 
     .go-cat:hover {
-        border-color: rgba(246, 177, 122, 0.3);
+        border-color: var(--go-accent);
         color: var(--go-text);
     }
 
     .go-cat.active {
         background: linear-gradient(135deg, var(--go-accent), var(--go-accent2));
         border-color: transparent;
-        color: #1A1A24;
+        color: #ffffff;
     }
 
     /* ===== MENU GRID ===== */
@@ -219,9 +220,9 @@
     }
 
     .go-card:hover {
-        border-color: rgba(246, 177, 122, 0.3);
+        border-color: var(--go-accent);
         transform: translateY(-3px);
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 8px 25px rgba(32, 77, 122, 0.15);
     }
 
     .go-card:active {
@@ -231,7 +232,7 @@
     .go-card-img {
         width: 100%;
         height: 110px;
-        background: linear-gradient(135deg, var(--go-surface2), #2A2A3A);
+        background: linear-gradient(135deg, #e0e7ee, #d0d8e0);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -283,7 +284,7 @@
         height: 32px;
         border-radius: 10px;
         background: linear-gradient(135deg, var(--go-accent), var(--go-accent2));
-        color: #1A1A24;
+        color: #ffffff;
         border: none;
         font-weight: 900;
         font-size: 18px;
@@ -302,15 +303,15 @@
     /* Pulse animation on add */
     @keyframes cardPulse {
         0% {
-            box-shadow: 0 0 0 0 rgba(246, 177, 122, 0.4);
+            box-shadow: 0 0 0 0 rgba(32, 77, 122, 0.4);
         }
 
         70% {
-            box-shadow: 0 0 0 10px rgba(246, 177, 122, 0);
+            box-shadow: 0 0 0 10px rgba(32, 77, 122, 0);
         }
 
         100% {
-            box-shadow: 0 0 0 0 rgba(246, 177, 122, 0);
+            box-shadow: 0 0 0 0 rgba(32, 77, 122, 0);
         }
     }
 
@@ -324,7 +325,7 @@
         bottom: 0;
         left: 0;
         right: 0;
-        background: linear-gradient(135deg, #1C1C2E, #2D1F3D);
+        background: linear-gradient(135deg, #204d7a, #163350);
         backdrop-filter: blur(20px);
         padding: 14px 20px;
         display: flex;
@@ -355,7 +356,7 @@
     .go-bar-btn {
         padding: 10px 28px;
         background: linear-gradient(135deg, var(--go-accent), var(--go-accent2));
-        color: #1A1A24;
+        color: #ffffff;
         border: none;
         border-radius: 12px;
         font-weight: 800;
@@ -408,7 +409,7 @@
     .go-panel-handle {
         width: 40px;
         height: 4px;
-        background: rgba(255, 255, 255, 0.15);
+        background: rgba(32, 77, 122, 0.12);
         border-radius: 2px;
         margin: 0 auto 18px;
     }
@@ -480,7 +481,7 @@
     }
 
     .go-ci-btn:hover {
-        background: rgba(246, 177, 122, 0.15);
+        background: rgba(32, 77, 122, 0.1);
     }
 
     .go-ci-val {
@@ -544,7 +545,7 @@
         width: 100%;
         padding: 16px;
         background: linear-gradient(135deg, var(--go-accent), var(--go-accent2));
-        color: #1A1A24;
+        color: #ffffff;
         border: none;
         border-radius: 14px;
         font-weight: 900;
@@ -557,7 +558,7 @@
 
     .go-submit:hover {
         transform: translateY(-1px);
-        box-shadow: 0 8px 25px rgba(246, 177, 122, 0.3);
+        box-shadow: 0 8px 25px rgba(32, 77, 122, 0.3);
     }
 
     .go-submit:disabled {
@@ -629,11 +630,15 @@
         const table = document.getElementById("guest-order-app").dataset.table;
         const existingOrder = document.getElementById("guest-order-app").dataset.order;
         const isAddMode = !!existingOrder;
+        const urlParams = new URLSearchParams(window.location.search);
+        const branchParam = urlParams.get('branch');
+        
         let cart = {};
         let menuData = {};
         let currency = "₹";
         let cartOpen = false;
         let allItems = [];
+        let orderType = table ? "Dine In" : (branchParam ? "Delivery" : "Parcel");
 
         frappe.call({
             method: "restaurant_management.restaurant_management.guest_api.get_guest_menu",
@@ -665,6 +670,14 @@
             </div>
 
             <div class="go-search-wrap">
+                <div class="go-form-group">
+                    <label>Delivery Address</label>
+                    <textarea id="go-delivery-addr" class="go-input" style="height:80px;" placeholder="Flat No, Building, Area..."></textarea>
+                    <button type="button" id="go-detect-loc" class="go-btn-small" style="margin-top:10px; background:var(--go-accent-dark); color:#fff; border:none; padding:8px 12px; border-radius:6px; font-size:12px; cursor:pointer;">
+                        📍 Detect My Current Location
+                    </button>
+                    <div id="go-loc-status" style="font-size:11px; margin-top:5px; color:var(--go-text2);"></div>
+                </div>
                 <div class="go-search-inner">
                     <span class="go-search-icon">🔍</span>
                     <input type="text" class="go-search" id="go-search" placeholder="Search dishes...">
@@ -699,9 +712,29 @@
                     <span>Total</span>
                     <span class="go-highlight" id="go-panel-total">${currency}0</span>
                 </div>
-                <input type="text" class="go-input" id="go-cust-name" placeholder="Your name (optional)">
-                <textarea class="go-input" id="go-notes" placeholder="Special instructions..." rows="2" style="resize:none;"></textarea>
-                <button class="go-submit" id="go-submit">${isAddMode ? '➕ Add to Order' : '✅ Place Order'}</button>
+
+                ${!table ? `
+                <div style="display:flex; gap:10px; margin-bottom:15px;">
+                    <button class="go-cat ${orderType === 'Parcel' ? 'active' : ''}" style="flex:1" onclick="setOrderType('Parcel')">📦 Takeaway</button>
+                    <button class="go-cat ${orderType === 'Delivery' ? 'active' : ''}" style="flex:1" onclick="setOrderType('Delivery')">🚚 Delivery</button>
+                </div>
+                ` : ''}
+
+                ${!table && !branchParam ? `
+                <select class="go-input" id="go-branch" style="margin-bottom:8px; background: rgba(0,0,0,0.2) !important;">
+                    <option value="">Select Branch (Required)</option>
+                    ${(data.branches || []).map(b => `<option value="${b.name}">${b.branch_name}</option>`).join('')}
+                </select>
+                ` : ''}
+
+                <div id="delivery-info" style="display: ${orderType === 'Delivery' ? 'block' : 'none'}">
+                    <textarea class="go-input" id="go-delivery-addr" placeholder="Your delivery address (required)" rows="3" style="resize:none;margin-bottom:8px;"></textarea>
+                </div>
+                
+                <input type="text" class="go-input" id="go-cust-name" placeholder="Your name (optional)" style="margin-bottom:8px;">
+                <input type="tel" class="go-input" id="go-cust-phone" placeholder="Your mobile number (required)" style="margin-bottom:8px;">
+                <textarea class="go-input" id="go-notes" placeholder="Special instructions..." rows="2" style="resize:none;margin-bottom:8px;"></textarea>
+                <button class="go-submit" id="go-submit" style="margin-top:10px;">${isAddMode ? '➕ Add to Order' : '✅ Place Order'}</button>
             </div>
         `;
 
@@ -735,6 +768,69 @@
             document.getElementById("go-panel-close").addEventListener("click", toggleCart);
             document.getElementById("go-overlay").addEventListener("click", toggleCart);
             document.getElementById("go-submit").addEventListener("click", placeOrder);
+
+            window.setOrderType = function(type) {
+                orderType = type;
+                document.querySelectorAll(".go-panel .go-cat").forEach(b => {
+                    b.classList.toggle("active", b.textContent.includes(type === 'Parcel' ? 'Takeaway' : 'Delivery'));
+                });
+                document.getElementById("delivery-info").style.display = type === 'Delivery' ? 'block' : 'none';
+            };
+
+            document.getElementById("go-branch")?.addEventListener("change", (e) => {
+                branchParam = e.target.value;
+                loadMenu();
+            });
+
+            document.getElementById("go-detect-loc")?.addEventListener("click", detectLocation);
+        }
+
+        let userLat = null, userLon = null;
+        function detectLocation() {
+            const btn = document.getElementById("go-detect-loc");
+            const status = document.getElementById("go-loc-status");
+            
+            if (!navigator.geolocation) {
+                status.textContent = "Geolocation is not supported by your browser.";
+                return;
+            }
+
+            btn.disabled = true;
+            status.textContent = "Detecting... Please allow location access.";
+
+            navigator.geolocation.getCurrentPosition((pos) => {
+                userLat = pos.coords.latitude;
+                userLon = pos.coords.longitude;
+                btn.textContent = "✅ Coordinates Captured";
+                status.textContent = "Fetching Address...";
+
+                // Reverse Geocoding via Nominatim (OpenStreetMap)
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${userLat}&lon=${userLon}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.display_name) {
+                            const addrField = document.getElementById("go-delivery-addr");
+                            if (addrField) {
+                                addrField.value = data.display_name;
+                                status.textContent = "✅ Address Auto-filled. You can edit it if needed.";
+                            }
+                        } else {
+                            status.textContent = "Coordinates: " + userLat.toFixed(5) + ", " + userLon.toFixed(5) + " (Address not found)";
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Geocoding error:", err);
+                        status.textContent = "Coordinates: " + userLat.toFixed(5) + ", " + userLon.toFixed(5) + " (Network error fetching address)";
+                    })
+                    .finally(() => {
+                        btn.disabled = false;
+                        btn.textContent = "📍 Re-detect Location";
+                    });
+
+            }, (err) => {
+                btn.disabled = false;
+                status.textContent = "Error ❌: " + err.message;
+            });
         }
 
         function renderItems(category) {
@@ -848,7 +944,32 @@
                 });
             } else {
                 let customerName = document.getElementById("go-cust-name").value;
+                let customerPhone = document.getElementById("go-cust-phone").value;
                 let notes = document.getElementById("go-notes").value;
+                let deliveryAddr = document.getElementById("go-delivery-addr")?.value;
+                let branchSelect = document.getElementById("go-branch");
+                let branch = branchParam || (branchSelect ? branchSelect.value : null);
+
+                if (!customerPhone) {
+                    frappe.msgprint("Please enter your mobile number.");
+                    btn.disabled = false;
+                    btn.textContent = "✅ Place Order";
+                    return;
+                }
+
+                if (!table && !branch) {
+                    frappe.msgprint("Please select a branch to place your order.");
+                    btn.disabled = false;
+                    btn.textContent = "✅ Place Order";
+                    return;
+                }
+
+                if (orderType === 'Delivery' && !deliveryAddr) {
+                    frappe.msgprint("Please enter your delivery address.");
+                    btn.disabled = false;
+                    btn.textContent = "✅ Place Order";
+                    return;
+                }
 
                 frappe.call({
                     method: "restaurant_management.restaurant_management.guest_api.place_guest_order",
@@ -856,11 +977,35 @@
                         items: JSON.stringify(orderItems),
                         table: table || "",
                         customer_name: customerName,
+                        customer_phone: customerPhone,
                         notes: notes,
+                        branch: branch || "",
+                        delivery_address: orderType === 'Delivery' ? deliveryAddr : "",
+                        delivery_latitude: orderType === 'Delivery' ? userLat : "",
+                        delivery_longitude: orderType === 'Delivery' ? userLon : "",
                     },
                     callback: function (r) {
                         if (r.message) {
-                            window.location.href = `/restaurant/status?order=${r.message.order_name}`;
+                            if (r.message.upi_link) {
+                                document.getElementById("go-panel").innerHTML = `
+                                    <div style="text-align:center;padding:20px;">
+                                        <div style="font-size:40px;margin-bottom:15px;">🔗</div>
+                                        <h3 style="color:#fff;font-weight:800;margin-bottom:10px;">Order Placed!</h3>
+                                        <p style="color:var(--go-text2);font-size:14px;margin-bottom:20px;">
+                                            Please pay <strong>${r.message.currency_symbol}${parseFloat(r.message.total_amount).toFixed(2)}</strong> to confirm your order.
+                                        </p>
+                                        <a href="${r.message.upi_link}" class="go-submit" style="display:block;text-decoration:none;background:var(--go-green);color:#1A1A24;">
+                                            📱 Pay with UPI
+                                        </a>
+                                        <button onclick="window.location.href='/restaurant/status?order=${r.message.order_name}'" 
+                                                style="background:none;border:none;color:var(--go-text2);margin-top:15px;cursor:pointer;font-size:13px;text-decoration:underline;">
+                                            I'll pay later (Track Order)
+                                        </button>
+                                    </div>
+                                `;
+                            } else {
+                                window.location.href = `/restaurant/status?order=${r.message.order_name}`;
+                            }
                         }
                     },
                     error: function () { btn.disabled = false; btn.textContent = "✅ Place Order"; }

@@ -1,6 +1,6 @@
 {
     "charts": [],
-    "content": "[{\"id\":\"gkh3xq\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Restaurant Management</b></span>\",\"col\":12}},{\"id\":\"k94nfd\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Restaurant POS\",\"col\":4}},{\"id\":\"v28kwm\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Kitchen Display\",\"col\":4}},{\"id\":\"p83mxd\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Restaurant Order\",\"col\":4}},{\"id\":\"r72bvt\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Restaurant Table\",\"col\":4}},{\"id\":\"s51czw\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Restaurant Menu Item\",\"col\":4}},{\"id\":\"t40ayp\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Restaurant Revenue\",\"col\":4}},{\"id\":\"u39bxn\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Restaurant Settings\",\"col\":4}}]",
+    "content": "[{\"id\":\"gkh3xq\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Restaurant Management</b></span>\",\"col\":12}},{\"id\":\"k94nfd\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Restaurant POS\",\"col\":4}},{\"id\":\"v28kwm\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Kitchen Display\",\"col\":4}},{\"id\":\"p83mxd\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Restaurant Order\",\"col\":4}},{\"id\":\"r72bvt\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Restaurant Table\",\"col\":4}},{\"id\":\"s51czw\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Restaurant Menu Item\",\"col\":4}},{\"id\":\"t40ayp\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Restaurant Revenue\",\"col\":4}},{\"id\":\"u39bxn\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Restaurant Settings\",\"col\":4}},{\"id\":\"v49cyo\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Restaurant Branch\",\"col\":4}},{\"id\":\"w58dzp\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Restaurant Delivery Boy\",\"col\":4}},{\"id\":\"x67eaq\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Table Reservation\",\"col\":4}}]",
     "creation": "2026-03-02 10:00:00.000000",
     "custom_blocks": [],
     "doctype": "Workspace",
@@ -80,6 +80,36 @@
             "link_type": "DocType",
             "onboard": 0,
             "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Restaurant Branch",
+            "link_count": 0,
+            "link_to": "Restaurant Branch",
+            "link_type": "DocType",
+            "onboard": 1,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Restaurant Delivery Boy",
+            "link_count": 0,
+            "link_to": "Restaurant Delivery Boy",
+            "link_type": "DocType",
+            "onboard": 1,
+            "type": "Link"
+        },
+        {
+            "hidden": 0,
+            "is_query_report": 0,
+            "label": "Table Reservation",
+            "link_count": 0,
+            "link_to": "Table Reservation",
+            "link_type": "DocType",
+            "onboard": 1,
+            "type": "Link"
         }
     ],
     "modified": "2026-03-02 10:00:00.000000",
@@ -137,6 +167,27 @@
             "color": "Grey",
             "label": "Restaurant Settings",
             "link_to": "Restaurant Settings",
+            "type": "DocType"
+        },
+        {
+            "color": "Purple",
+            "doc_view": "List",
+            "label": "Restaurant Branch",
+            "link_to": "Restaurant Branch",
+            "type": "DocType"
+        },
+        {
+            "color": "Cyan",
+            "doc_view": "List",
+            "label": "Restaurant Delivery Boy",
+            "link_to": "Restaurant Delivery Boy",
+            "type": "DocType"
+        },
+        {
+            "color": "Teal",
+            "doc_view": "List",
+            "label": "Table Reservation",
+            "link_to": "Table Reservation",
             "type": "DocType"
         }
     ],

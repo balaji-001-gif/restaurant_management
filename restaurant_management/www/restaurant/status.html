@@ -10,19 +10,22 @@
     </div>
 </div>
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
 <style>
     :root {
-        --os-primary: #2D3250;
-        --os-accent: #F6B17A;
-        --os-bg: #f8f9fa;
-        --os-success: #7DCE94;
-        --os-warning: #FFD93D;
-        --os-info: #64B5F6;
-        --os-purple: #9C6FDE;
+        --os-primary: #204d7a;
+        --os-accent: #2a6399;
+        --os-bg: #f3f3f3;
+        --os-success: #2e7d32;
+        --os-warning: #e65100;
+        --os-info: #1565C0;
+        --os-purple: #6A1B9A;
     }
 
     .os-header {
-        background: linear-gradient(135deg, var(--os-primary), #424769);
+        background: linear-gradient(135deg, var(--os-primary), #2a6399);
         color: #fff;
         padding: 24px;
         text-align: center;
@@ -290,6 +293,51 @@
         opacity: 0.5;
         cursor: not-allowed;
     }
+
+    #os-map {
+        height: 300px;
+        width: calc(100% - 20px);
+        margin: 0 10px 20px;
+        border-radius: 14px;
+        z-index: 10;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .dboy-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 10px;
+        padding: 10px;
+        background: #fdfdfd;
+        border-radius: 10px;
+    }
+
+    .dboy-avatar {
+        width: 40px;
+        height: 40px;
+        background: var(--os-primary);
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    .dboy-info {
+        flex: 1;
+    }
+
+    .dboy-name {
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    .dboy-phone {
+        font-size: 12px;
+        color: #888;
+    }
 </style>
 
 <script>
@@ -306,6 +354,11 @@
 		`;
             return;
         }
+
+        let map = null;
+        let dboyMarker = null;
+        let branchMarker = null;
+        let customerMarker = null;
 
         loadStatus();
         // Auto-refresh every 8 seconds
@@ -339,6 +392,8 @@
                 "Served": "🍽️",
                 "Completed": "🎉",
                 "Cancelled": "❌",
+                "Out for Delivery": "🛵",
+                "Delivered": "🎁",
             };
             let statusMessages = {
                 "In Progress": "Your order has been received!",
@@ -347,9 +402,11 @@
                 "Served": "Enjoy your meal! 😋",
                 "Completed": "Thank you for dining with us!",
                 "Cancelled": "This order was cancelled.",
+                "Out for Delivery": "Our delivery hero is on the way!",
+                "Delivered": "Order delivered! Enjoy your food.",
             };
 
-            let tableInfo = order.table_number ? `Table ${order.table_number}` : "Parcel Order";
+            let tableInfo = order.table_number ? `Table ${order.table_number}` : (order.order_type === 'Delivery' ? 'Delivery Order' : 'Parcel Order');
 
             let html = `
 			<div class="os-header">
@@ -358,11 +415,28 @@
 			</div>
 
 			<div class="os-status-big">
-				<div class="os-status-icon">${statusIcons[order.status] || "📋"}</div>
-				<div class="os-status-text">${order.status}</div>
-				<div class="os-status-sub">${statusMessages[order.status] || ""}</div>
+				<div class="os-status-icon">${statusIcons[order.display_status] || (order.order_type === 'Delivery' ? '🛵' : '📋')}</div>
+				<div class="os-status-text">${order.display_status}</div>
+				<div class="os-status-sub">${statusMessages[order.display_status] || ""}</div>
 			</div>
 		`;
+
+            // Live Tracking Map
+            if (order.order_type === "Delivery" && order.display_status === "Out for Delivery") {
+                html += `
+                <div class="os-card">
+                    <h3>📍 Live Tracking</h3>
+                    <div id="os-map" style="height: 300px; background: #eee; border-radius: 12px; margin-bottom: 15px;"></div>
+                    <div class="dboy-card">
+                        <div class="dboy-avatar">🛵</div>
+                        <div class="dboy-info">
+                            <div class="dboy-name">${order.delivery_boy || 'Delivery Hero'}</div>
+                            <div class="dboy-phone">On his way to you!</div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
 
             // Timeline
             if (order.status !== "Cancelled") {
@@ -414,11 +488,8 @@
 					</a>
 					<p style="color:#aaa;font-size:11px;margin:10px 0 5px;">UPI ID: ${data.upi.upi_id}</p>
 					<p style="color:#888;font-size:12px;margin:8px 0 12px;">
-						After completing payment in your UPI app, tap below:
+						Please wait while the cashier confirms your payment...
 					</p>
-					<button class="os-confirm-btn" id="confirm-paid-btn" data-order="${order.name}">
-						✅ I have paid
-					</button>
 				</div>
 			`;
             }
@@ -449,28 +520,103 @@
 
             document.getElementById("order-status-app").innerHTML = html;
 
-            // Bind confirm payment button
-            let confirmBtn = document.getElementById("confirm-paid-btn");
-            if (confirmBtn) {
-                confirmBtn.addEventListener("click", function () {
-                    let btn = this;
-                    btn.disabled = true;
-                    btn.textContent = "Verifying payment...";
-                    frappe.call({
-                        method: "restaurant_management.restaurant_management.guest_api.confirm_guest_payment",
-                        args: { order_name: btn.dataset.order },
-                        callback: function (r) {
-                            if (r.message) {
-                                loadStatus();
-                            }
-                        },
-                        error: function () {
-                            btn.disabled = false;
-                            btn.textContent = "✅ I have paid";
-                        }
-                    });
-                });
+            // Initialize/Update Map
+            if (order.order_type === "Delivery" && order.display_status === "Out for Delivery") {
+                initTrackingMap(data);
+            } else {
+                if (map) {
+                    map.remove();
+                    map = null;
+                }
+                dboyMarker = null;
+                branchMarker = null;
             }
+        }
+
+        function initTrackingMap(data) {
+            const tracking = data.delivery_tracking;
+            if (!tracking || !tracking.delivery_boy || !tracking.delivery_boy.last_latitude) return;
+
+            const dboyPos = [tracking.delivery_boy.last_latitude, tracking.delivery_boy.last_longitude];
+            const branchPos = tracking.branch && tracking.branch.latitude ? [tracking.branch.latitude, tracking.branch.longitude] : null;
+            const customerPos = tracking.customer && tracking.customer.latitude ? [tracking.customer.latitude, tracking.customer.longitude] : null;
+
+            setTimeout(() => {
+                const mapContainer = document.getElementById('os-map');
+                if (!mapContainer) return;
+
+                if (map) {
+                   if (map.getContainer() !== mapContainer) {
+                       map.remove();
+                       map = null;
+                       dboyMarker = null;
+                       branchMarker = null;
+                       customerMarker = null;
+                   }
+                }
+
+                if (!map) {
+                    map = L.map('os-map').setView(dboyPos, 15);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap'
+                    }).addTo(map);
+                }
+
+                // Delivery Boy Marker
+                if (dboyMarker) {
+                    dboyMarker.setLatLng(dboyPos);
+                } else {
+                    const boyIcon = L.divIcon({
+                        html: '<div style="font-size:30px;">🛵</div>',
+                        className: 'boy-icon',
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
+                    });
+                    dboyMarker = L.marker(dboyPos, {icon: boyIcon}).addTo(map).bindPopup('Delivery Hero');
+                }
+
+                // Branch Marker (Restaurant)
+                if (branchPos) {
+                    if (branchMarker) {
+                        branchMarker.setLatLng(branchPos);
+                    } else {
+                        const storeIcon = L.divIcon({
+                            html: '<div style="font-size:24px;">🏪</div>',
+                            className: 'store-icon',
+                            iconSize: [24, 24],
+                            iconAnchor: [12, 12]
+                        });
+                        branchMarker = L.marker(branchPos, {icon: storeIcon}).addTo(map).bindPopup('Restaurant');
+                    }
+                }
+
+                // Customer Marker (Destination)
+                if (customerPos) {
+                    if (customerMarker) {
+                        customerMarker.setLatLng(customerPos);
+                    } else {
+                        const homeIcon = L.divIcon({
+                            html: '<div style="font-size:24px;">🏠</div>',
+                            className: 'home-icon',
+                            iconSize: [24, 24],
+                            iconAnchor: [12, 12]
+                        });
+                        customerMarker = L.marker(customerPos, {icon: homeIcon}).addTo(map).bindPopup('Delivery Address');
+                    }
+                }
+
+                // Fit bounds to show all active markers
+                let points = [dboyPos];
+                if (branchPos) points.push(branchPos);
+                if (customerPos) points.push(customerPos);
+                
+                if (points.length > 1) {
+                    const bounds = L.latLngBounds(points);
+                    map.fitBounds(bounds, { padding: [50, 50] });
+                } else {
+                    map.panTo(dboyPos);
+                }
+            }, 100);
         }
     });
 </script>

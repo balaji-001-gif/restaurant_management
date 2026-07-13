@@ -23,5 +23,11 @@ frappe.query_reports["Restaurant Revenue"] = {
             fieldtype: "Select",
             options: "\nDine In\nParcel",
         },
+        {
+            fieldname: "branch",
+            label: __("Branch"),
+            fieldtype: "Link",
+            options: "Restaurant Branch",
+        },
     ],
 };

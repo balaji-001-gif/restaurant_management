@@ -1,15 +1,22 @@
 <div id="restaurant-pos-app">
 	<!-- POS Tabs -->
 	<div class="pos-tabs">
-		<button class="pos-tab active" data-tab="new-order">
-			<i class="fa fa-plus-circle"></i> New Order
-		</button>
-		<button class="pos-tab" data-tab="orders-list">
-			<i class="fa fa-list"></i> Orders <span class="pos-tab-badge" id="orders-badge"></span>
-		</button>
-		<button class="pos-tab" data-tab="tables-view">
-			<i class="fa fa-th-large"></i> Tables
-		</button>
+		<div style="display: flex; gap: 10px;">
+			<button class="pos-tab active" data-tab="new-order">
+				<i class="fa fa-plus-circle"></i> New Order
+			</button>
+			<button class="pos-tab" data-tab="orders-list">
+				<i class="fa fa-list"></i> Orders <span class="pos-tab-badge" id="orders-badge"></span>
+			</button>
+			<button class="pos-tab" data-tab="tables-view">
+				<i class="fa fa-th-large"></i> Tables
+			</button>
+		</div>
+		<div style="margin-right: 15px;">
+			<select id="branch-selector" class="branch-select">
+				<option value="">🏠 All Branches</option>
+			</select>
+		</div>
 	</div>
 
 	<!-- TAB 1: New Order -->
@@ -26,10 +33,20 @@
 					<button class="btn btn-order-type" data-type="Parcel">
 						<i class="fa fa-shopping-bag"></i> Parcel
 					</button>
+					<button class="btn btn-order-type" data-type="Delivery">
+						<i class="fa fa-motorcycle"></i> Delivery
+					</button>
 				</div>
 				<select id="table-selector" class="form-control table-select">
 					<option value="">Select Table...</option>
 				</select>
+				<div id="delivery-info" style="display: none; gap: 8px; margin-left: 10px; align-items: center;">
+					<input type="text" id="delivery-address" class="form-control" placeholder="Delivery Address" style="width: 250px;">
+					<button id="btn-detect-pos-loc" class="btn btn-default btn-sm" title="Detect Current Location" style="padding: 5px 10px;">
+						<i class="fa fa-map-marker-alt"></i>
+					</button>
+					<input type="text" id="delivery-phone" class="form-control" placeholder="Phone Number" style="width: 130px;">
+				</div>
 			</div>
 		</div>
 
